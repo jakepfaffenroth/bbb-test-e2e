@@ -1,0 +1,80 @@
+// const test = require("@playwright/test");
+const { test, expect } = require("@playwright/test");
+const { ampBody, search, appShellVersion, testExtended } = require("../utils");
+const pages = require("../json/pageExamples.json")
+
+test.describe()
+// const basics = {
+//   runPrechecks: function () {
+//     this.checkForPwa();
+//     this.checkVersionNumbers();
+//   },
+//   checkForPwa: function () {
+//     test("make sure we're on PWA", async ({ page }) => {
+//       expect(page.locator("html"))
+//         .toHaveAttribute("data-version")
+//         .toHaveAttribute("amp-version")
+//         .toHaveClass("PWAMP");
+//       expect(page.locator("body")).toHaveClass("PWAMP");
+//     });
+//   },
+//   checkVersionNumbers: function () {
+//     test("Make sure version numbers match", async ({ page }) => {
+//       const appShellVersion = await page
+//         .locator("html")
+//         .getAttribute("data-version");
+//       const ampDocVersion = await page
+//         .locator("body.amp-shadow")
+//         .getAttribute("data-version");
+//       expect(ampDocVersion).toEqual(appShellVersion);
+//     });
+//   },
+// };
+
+module.exports.prechecks = basic.test.extend({
+  // Define an option and provide a default value.
+  // We can later override it in the config.
+  defaultItem: ["Do stuff", { option: true }],
+
+  // Define a fixture. Note that it can use built-in fixture "page"
+  // and a new option "defaultItem".
+  // todoPage: async ({ page, defaultItem }, use) => {
+  //   const todoPage = new TodoPage(page);
+  //   await todoPage.goto();
+  //   await todoPage.addToDo(defaultItem);
+  //   await use(todoPage);
+  //   await todoPage.removeAll();
+  // },
+  runPrechecks: async ({ page }) => {
+    expect(page.locator("html"))
+      .toHaveAttribute("data-version")
+      .toHaveAttribute("amp-version")
+      .toHaveClass("PWAMP");
+
+    expect(page.locator("body")).toHaveClass("PWAMP");
+
+    const appShellVersion = await page
+      .locator("html")
+      .getAttribute("data-version");
+    const ampDocVersion = await page
+      .locator("body.amp-shadow")
+      .getAttribute("data-version");
+    expect(ampDocVersion).toEqual(appShellVersion);
+  },
+  // checkForPwa: async ({ page, defaultItem }) => {
+  //   expect(page.locator("html"))
+  //     .toHaveAttribute("data-version")
+  //     .toHaveAttribute("amp-version")
+  //     .toHaveClass("PWAMP");
+  //   expect(page.locator("body")).toHaveClass("PWAMP");
+  // },
+  // checkVersionNumbers: async ({ page, defaultItem }) => {
+  //   const appShellVersion = await page
+  //     .locator("html")
+  //     .getAttribute("data-version");
+  //   const ampDocVersion = await page
+  //     .locator("body.amp-shadow")
+  //     .getAttribute("data-version");
+  //   expect(ampDocVersion).toEqual(appShellVersion);
+  // },
+});

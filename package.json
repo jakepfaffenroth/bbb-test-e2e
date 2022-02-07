@@ -1,0 +1,23 @@
+{
+  "name": "test-playwright",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test --quiet",
+    "test:proxy": "npx playwright test --config=proxyEnabled.config.js --quiet",
+    "test:noFlags": "npx playwright test",
+    "debug": "PWDEBUG=1 npx playwright test",
+    "debug:proxy": "PWDEBUG=1 npx playwright test --config=proxyEnabled.config.js",
+    "report": "npx playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.18.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0"
+  }
+}
