@@ -2,7 +2,7 @@ const { test, expect, ...utils } = require("../utils");
 const plpExamples = require("../json/plpExamples.json");
 
 for (const example in plpExamples) {
-  test.describe(example, () => {
+  test.describe.parallel(example, () => {
     test.beforeEach(async ({ page }) => {
       const url = plpExamples[example];
       test.slow();
@@ -64,7 +64,7 @@ for (const example in plpExamples) {
       await expect(page.locator("#wmHostPrimary body.amp-shadow")).toBeHidden();
     });
 
-    test.only("Pagination", async ({ page }) => {
+    test("Pagination", async ({ page }) => {
       const landingUrl = page.url();
       // const nextPageBtn = page.locator("data-test=plpPaginationNext");
       // const prevPageBtn = page.locator("button.plpPrev");
