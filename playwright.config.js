@@ -62,19 +62,23 @@ const config = {
   /* Configure projects for major browsers */
   projects: [
     {
-      name: "DSK: Chrome",
-
-      /* Project-specific settings. */
-      use: {
-        ...devices["Desktop Chrome"],
-      },
-    },
-    {
       name: "MOB: iPhone",
-
-      /* Project-specific settings. */
       use: {
         ...devices["iPhone 11"],
+      },
+    },
+    // iPad portait orientation - 768px wide
+    {
+      name: "TAB: iPad 768",
+      use: {
+        ...devices["iPad (gen 6)"],
+      },
+    },
+    // viewport 1280px wide
+    {
+      name: "DSK: Chrome",
+      use: {
+        ...devices["Desktop Chrome"],
       },
     },
 

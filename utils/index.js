@@ -9,14 +9,14 @@ class Utils {
   test;
   expect;
   init = async function ({ page, url }) {
-    await setup(page);
     if (!url) return;
+    await setup(page);
     page.goto(url, { waitUntil: "commit" });
     // page.waitForNavigation({
     //   waitUntil: "domcontentloaded",
     //   timeout: 60 * 1000,
     // });
-    await this.waitForAmpBody(page);
+    await Promise.all([this.getPageType(page), this.waitForAmpBody(page)]);
   };
   waitForAmpBody = async function (page) {
     // await page.waitForNavigation({ state: "commit" });
@@ -118,6 +118,23 @@ class Utils {
       });
     }, delay);
   };
+  // getPlpCards = async function ({
+  //   page,
+  //   selector = ".prodCard",
+  //   scroll = true,
+  // }) {
+  //   const prodCards = page.locator(selector);
+
+  //   if (scroll) await this.autoScroll(page, 75);
+
+  //   const count = await prodCards.count();
+  //   return !count ? "NONE_FOUND" : prodCards;
+  //   // if () {
+  //   // } else {
+  //   //   // const selectedCard = prodCards.nth((count * Math.random()) | 0);
+  //   //   return prodCards;
+  //   // }
+  // };
   getRandPlpCard = async function ({
     page,
     selector = ".prodCard",
@@ -135,10 +152,70 @@ class Utils {
       return selectedCard;
     }
   };
+  getCartCount = async function (page) {
+    // await page.waitForLoadState("load", { timeout: 60 * 1000 });
+    // await page.waitForTimeout(3000);
+    return Number(await page.locator("#cartCount").textContent());
+  };
   waitAfterPdpSoftNav = async function (page) {
     await page.waitForLoadState("networkidle", { timeout: 60 * 1000 });
     await page.locator("#wmShellContentWrap.pdpActive").waitFor(60 * 1000);
     await this.waitForAmpBody(page);
+  };
+  screenshotReact = async function ({ page, url, name }) {
+    page.goto(url.replace("wmPwa", "wmSkipPwa"));
+    await page.waitForNavigation({ waitUntil: "domcontentloaded" });
+    return await page.screenshot("./plp.spec.js-snapshots/" + name + "-xt.png");
+  };
+  pagination = {
+    next: async function (page) {
+      const nextPageBtn = page.locator("data-test=plpPaginationNext");
+      // The page numbers have data-test="plpPaginationBack", not the prev button
+      const pageNumberEl = page.locator("data-test=plpPaginationBack");
+
+      const pageCur = Number(
+        (await pageNumberEl.textContent())
+          // .join(" ")
+          .match(/([0-9]+)/)[0]
+      );
+
+      await nextPageBtn.scrollIntoViewIfNeeded();
+      await nextPageBtn.click();
+      // await page.waitForTimeout(500);
+      await page.waitForSelector("#plpListInner div[role=list]");
+
+      const pageNext = Number(
+        (await pageNumberEl.textContent())
+          // .join(" ")
+          .match(/([0-9]+)/)[0]
+      );
+      return { pageCur, pageNext };
+      // expect(pageNumberNext).toEqual(pageNumberCur + 1);
+    },
+    prev: async function (page) {
+      const prevPageBtn = page.locator("button.plpPrev");
+      // The page numbers have data-test="plpPaginationBack", not the prev button
+      const pageNumberEl = page.locator("data-test=plpPaginationBack");
+
+      const pageCur = Number(
+        (await pageNumberEl.textContent())
+          // .join(" ")
+          .match(/([0-9]+)/)[0]
+      );
+
+      await prevPageBtn.scrollIntoViewIfNeeded();
+      await prevPageBtn.click();
+      // await page.waitForTimeout(500);
+      await page.waitForSelector("#plpListInner div[role=list]");
+
+      const pagePrev = Number(
+        (await pageNumberEl.textContent())
+          // .join(" ")
+          .match(/([0-9]+)/)[0]
+      );
+      return { pageCur, pagePrev };
+      // expect(pageNumberNext).toEqual(pageNumberCur + 1);
+    },
   };
 }
 
