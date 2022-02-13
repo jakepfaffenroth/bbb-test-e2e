@@ -135,21 +135,25 @@ class Utils {
   //   //   return prodCards;
   //   // }
   // };
-  getRandPlpCard = async function ({
+  getRandElement = async function ({
     page,
     selector = ".prodCard",
     scroll = true,
   }) {
-    const prodCards = page.locator(selector);
+    if (!page || !selector) return "MISSING_ARGS";
+    const elements = page.locator(selector);
 
     if (scroll) await this.autoScroll(page, 75);
-
-    const count = await prodCards.count();
+    // await elements.first().waitFor();
+    if ((await elements.first().count()) == 0) {
+      return this.getRandElement({ page, selector, scroll });
+    }
+    const count = await elements.count();
     if (!count) {
       return "NONE_FOUND";
     } else {
-      const selectedCard = prodCards.nth((count * Math.random()) | 0);
-      return selectedCard;
+      const selectedElement = elements.nth((count * Math.random()) | 0);
+      return selectedElement;
     }
   };
   getCartCount = async function (page) {
@@ -321,17 +325,17 @@ async function autoScroll(page, delay = 100) {
   }, delay);
 }
 
-async function getRandPlpCard({ page, selector = ".prodCard", scroll = true }) {
-  const prodCards = page.locator(selector);
+async function getRandElement({ page, selector, scroll = true }) {
+  const elements = page.locator(selector);
 
   if (scroll) await autoScroll(page, 75);
 
-  const count = await prodCards.count();
+  const count = await elements.count();
   if (!count) {
     return "NONE_FOUND";
   } else {
-    const selectedCard = prodCards.nth((count * Math.random()) | 0);
-    return selectedCard;
+    const selectedElement = elements.nth((count * Math.random()) | 0);
+    return selectedElement;
   }
 }
 
@@ -350,7 +354,7 @@ async function waitAfterPdpSoftNav(page) {
 //   checkVersion,
 //   autoScroll,
 //   getPageType,
-//   getRandPlpCard,
+//   getRandElement,
 //   waitAfterPdpSoftNav,
 //   checkResponse
 // };
