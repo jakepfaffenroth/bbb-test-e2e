@@ -7,7 +7,7 @@
     "start": "npx playwright test --quiet",
     "pretest": "cd ~/bbb-test-e2e/test-runner && git pull",
     "test": "npx playwright test --quiet --workers=4",
-    "posttest": "cd ~/bbb-test-e2e/test-report && git add . && git commit -m \"$(date '+%Y-%m-%d %H:%M:%S')\" && git push",
+    "posttest": "cd ~/bbb-test-e2e/test-results/ && git add /test-report && git commit -m \"$(date '+%Y-%m-%d %H:%M:%S')\" && git push",
     "test:proxy": "npx playwright test --config=proxyEnabled.config.js --quiet",
     "test:noFlags": "npx playwright test",
     "debug": "PWDEBUG=1 npx playwright test",
