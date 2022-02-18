@@ -72,6 +72,8 @@ const config = {
     // iPad portait orientation - 768px wide
     {
       name: "TAB: iPad 768",
+      // Don't need to run seo checks at every breakpoint
+      testIgnore: /seo/,
       use: {
         ...devices["iPad (gen 6)"],
       },
@@ -79,11 +81,12 @@ const config = {
     // viewport 1280px wide
     {
       name: "DSK: Chrome",
+      // Don't need to run seo checks at every breakpoint
+      testIgnore: /seo/,
       use: {
         ...devices["Desktop Chrome"],
       },
     },
-
     // {
     //   name: 'firefox',
     //   use: {
