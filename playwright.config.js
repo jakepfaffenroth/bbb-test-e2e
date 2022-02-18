@@ -14,9 +14,8 @@ const workerCount = process.env.WORKERS
  * @type {import('@playwright/test').PlaywrightTestConfig}
  */
 const config = {
-  // Default to NOT route through local proxy
-  // Override by passing arg --config=proxyEnabled.config.js
-  globalSetup: require.resolve("./setup/global-setup_proxyDisabled.js"),
+  globalSetup: require.resolve("./setup/global-setup.js"),
+  // globalTeardown: require.resolve("./setup/global-teardown.js"),
 
   testDir: "./tests",
   // retries: 1,
