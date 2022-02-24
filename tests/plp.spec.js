@@ -1,21 +1,28 @@
-const { test, expect, ...utils } = require("../utils");
-const plpExamples = require("../json/plpExamples.json");
+const { test, expect, utils } = require("../utils");
+const pages = utils.prepPaths(require("../testPages/plp.json"));
 
-for (const example in plpExamples) {
-  test.describe.parallel(example, () => {
+for (let examplePage of pages) {
+  examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
+
+  test.describe(examplePage.name, () => {
+    test.describe.configure({ mode: "parallel" });
+    // checkVersion flag - Validate that PWA and AMP doc versions match
+    test.use({ examplePage, checkVersion: true });
+
     test.beforeEach(async ({ page }) => {
-      // test.skip(!/DSK/.test(test.info().project.name));
-      // test.skip(!/MOB/.test(test.info().project.name));
-      const url = plpExamples[example];
       test.slow();
-      await utils.init({ page, url });
     });
 
     test("Flow: ATC", async ({ page }) => {
-      let selectedCard = await utils.getRandElement({
+      await page.locator("#plpListInner").scrollIntoViewIfNeeded();
+      await page
+        .locator("#plpListInner div[role='list']")
+        .waitFor({ timeout: 0 });
+      const selectedCard = await utils.getRandElement({
         page,
         // Selects from all .prodCard with a descendant that contains the regex match "Add to Cart"
-        selector: '.prodCard:has(.plpAtc:text-matches("Add to Cart", "i"))',
+        selector:
+          '.prodCard:has(.plpAtc:text-matches("Add to Cart", "i"):visible)',
       });
 
       test.skip(
@@ -26,19 +33,32 @@ for (const example in plpExamples) {
       const cartCount = page.locator("#cartCount");
       const cartCountBefore = Number(await cartCount.textContent());
 
-      await selectedCard.locator("text=Add to Cart").click();
+      await selectedCard
+        .locator('.plpAtc:text-matches("Add to Cart", "i"):visible')
+        .click();
       await page.waitForLoadState("load", { timeout: 60 * 1000 });
-      await page.waitForTimeout(3000);
 
-      const modalCart = page.locator(".modalCart");
+      const modalCartWrap = page.locator("#fulfillmentModal, #modalCartWrap");
+      const cartError =
+        /cartErrorModal/.test(await modalCartWrap.getAttribute("class")) ||
+        (await modalCartWrap.locator(".panelAlert:visible").count()) > 0;
+      await expect(modalCartWrap).toBeVisible();
+      await modalCartWrap.locator("button.modalClose:visible").click();
+      await expect(modalCartWrap).toBeHidden();
+      test.skip(
+        cartError,
+        "Error adding to cart, e.g., out of stock or API error."
+      );
       const cartCountAfter = Number(await cartCount.textContent());
-      await expect(modalCart).toBeVisible();
-      await modalCart.locator("button.modalClose").click();
       expect(cartCountAfter).toEqual(cartCountBefore + 1);
     });
 
-    test("Flow: Choose Options", async () => {
-      selectedCard = await utils.getRandElement({
+    test("Flow: Choose Options", async ({ page }) => {
+      await page.locator("#plpListInner").scrollIntoViewIfNeeded();
+      await page
+        .locator("#plpListInner div[role='list']")
+        .waitFor({ timeout: 0 });
+      const selectedCard = await utils.getRandElement({
         page,
         // Selects from all .prodCard with a descendant that contains the regex match "Add to Cart"
         selector: '.prodCard:has(.plpAtc:text-matches("Choose Options", "i"))',
@@ -47,6 +67,9 @@ for (const example in plpExamples) {
         selectedCard == "NONE_FOUND",
         "No prodCards found with Choose Options btn."
       );
+      await selectedCard
+        .locator(".plpAtc:text-matches('Choose Options', 'i')")
+        .click();
       await utils.waitAfterPdpSoftNav(page);
       await expect(page.locator("#wmHostPdp body.amp-shadow")).toBeVisible();
       await expect(page.locator("#wmHostPrimary body.amp-shadow")).toBeHidden();
@@ -70,12 +93,12 @@ for (const example in plpExamples) {
     });
 
     test("Pagination", async ({ page }) => {
-      // const landingUrl = page.url();
-
       const firstProdCard = page.locator(".prodCard").first();
       let comparisonCardId = await firstProdCard.getAttribute("id");
       let selectedCardId;
       let pageCur, pageNext, pagePrev;
+
+      await page.locator("#plpPagination").scrollIntoViewIfNeeded();
 
       await ({ pageCur, pageNext } = await utils.pagination.next(page));
 
@@ -105,8 +128,6 @@ for (const example in plpExamples) {
     });
 
     test("Toggle Pickup and SDD filters", async ({ page }) => {
-      test.slow(false);
-      test.setTimeout(30 * 1000);
       test.skip(/harmon/.test(page.url()), "SDD and BOPIS disabled on Harmon");
 
       const [isBopisPillVisible, isSddPillVisible] = await arePillsVisible(
@@ -126,6 +147,7 @@ for (const example in plpExamples) {
     });
 
     test("Apply various filters", async ({ page }) => {
+      // test.fixme();
       // test.setTimeout(45 * 1000);
       let bopisClicked;
       if (
@@ -144,18 +166,21 @@ for (const example in plpExamples) {
         "#facetsList input.cbh:not(:checked) ~ .plpOptLbl"
       );
       const count = await allUncheckedAccordians.count();
-      await page.waitForSelector("#facetsList");
+      await page.waitForSelector("#facetsList .plpOpt");
       const hScrollList = page.locator(".hScrollList:visible");
 
       const usedFacets = [];
       await test.step("Apply facets", async () => {
         for (let i = 0; i < 3; i++) {
           // Get one of the closed accordians and open it
-          const randAccordian = await getRandAccordian();
-          if (typeof randAccordian == String) {
-            console.log("randAccordian not found");
-          }
-          await randAccordian.click();
+          await clickRandAccordian();
+          // const randAccordian = await getRandAccordian();
+          // if (typeof randAccordian == String) {
+          //   console.log("randAccordian not found");
+          // }
+          // if (await randAccordian.isHidden()) {
+          // }
+          // await randAccordian.click();
           // Get a visible facet and click the checkbox
           await clickRandFacet();
         }
@@ -191,6 +216,25 @@ for (const example in plpExamples) {
         );
       }
 
+      async function clickRandAccordian() {
+        // Get one of the closed accordians and open it
+        const randAccordian = await getRandAccordian();
+        if (typeof randAccordian == "string") {
+          console.log("randAccordian not found");
+        }
+        if (
+          (await page.locator("#facetsList").isHidden()) &&
+          !/DSK/.test(test.info().project.name)
+        ) {
+          await page.locator("data-test=plpFilterResultsBtn").click();
+          await page.waitForSelector("#facetsList .plpOpt");
+        }
+        if (await randAccordian.isHidden()) {
+          await clickRandAccordian();
+        }
+        await randAccordian.click();
+      }
+
       async function clickRandFacet() {
         const isFilterPanelOpen = await page
           .locator(
@@ -209,22 +253,22 @@ for (const example in plpExamples) {
             scroll: false,
           })) || "ERROR w getRandFacet";
 
-        if (typeof randFacet == String) await page.pause();
+        if (typeof randFacet == "string") {
+          console.log(colors.red("no random facet found"));
+          return;
+        }
         let facetName = (await randFacet.textContent()).match(
           /(.+)(?=\([0-9]+\))/
         );
         if (facetName.length)
           facetName = facetName[0].trim().replace('"', '\\"');
-        console.log(
-          "await randFacet.textContent():",
-          await randFacet.textContent()
-        );
-        console.log("facetName:", facetName);
+        // console.log(
+        //   "await randFacet.textContent():",
+        //   await randFacet.textContent()
+        // );
+        // console.log("facetName:", facetName);
 
         if (usedFacets.indexOf(facetName) > -1) {
-          return;
-        } else if (typeof randFacet == String) {
-          console.log(colors.red("no random facet found"));
           return;
         } else {
           usedFacets.push(facetName);
@@ -236,13 +280,16 @@ for (const example in plpExamples) {
 
         await hScrollList.waitFor();
         const hScrollListTxt = await hScrollList.textContent();
-        const pillLocator = page.locator(
-          `.hScrollList button:text('${facetName}')`
-        );
-        console.log(
-          "await hScrollList.locator('button:visible').allTextContents():",
-          await hScrollList.locator("button:visible").allTextContents()
-        );
+        // const pillLocator = page.locator(
+        //   `.hScrollList button:text("${facetName}")`
+        // );
+        const pillLocator = hScrollList
+          .locator("button:visible")
+          .locator(`text=${facetName}`);
+        // console.log(
+        //   "await hScrollList.locator('button:visible').allTextContents():",
+        //   await hScrollList.locator("button:visible").allTextContents()
+        // );
         expect(!(await pillLocator.count()) || (await pillLocator.isHidden()))
           .toBeTruthy;
         // expect(
@@ -262,11 +309,13 @@ async function clickBopis(page) {
 
   await bopisCb.click();
 
-  const [isBopisPillVisible, isSddPillVisible] = await arePillsVisible(page);
   await Promise.all([
-    page.waitForSelector("[data-test=bopisPill]:visible"),
-    page.waitForTimeout(3000),
+    page.waitForSelector("[data-test=bopisPill]:visible", {
+      timeout: 10 * 10000,
+    }),
+    page.waitForTimeout(5000),
   ]);
+  const [isBopisPillVisible, isSddPillVisible] = await arePillsVisible(page);
 
   expect(isBopisPillVisible).toBeTruthy();
   expect(isSddPillVisible).toBeFalsy();
@@ -277,11 +326,13 @@ async function clickSdd(page) {
 
   await sddCb.click();
 
-  const [isBopisPillVisible, isSddPillVisible] = await arePillsVisible(page);
   await Promise.all([
-    page.waitForSelector("[data-test=SddPill]:visible"),
-    page.waitForTimeout(3000),
+    page.waitForSelector("[data-test=SddPill]:visible", {
+      timeout: 10 * 10000,
+    }),
+    page.waitForTimeout(5000),
   ]);
+  const [isBopisPillVisible, isSddPillVisible] = await arePillsVisible(page);
 
   expect(isBopisPillVisible).toBeFalsy();
   expect(isSddPillVisible).toBeTruthy();
@@ -293,9 +344,7 @@ async function arePillsVisible(page) {
     page.waitForSelector("#plpPills .hScrollList"),
   ]);
   return await Promise.all([
-    await page.locator('#plpPills button:has-text("Store Pickup")').isVisible(),
-    await page
-      .locator('#plpPills button:has-text("Same Day Delivery")')
-      .isVisible(),
+    page.locator("#plpPills button.plpBopisPill").isVisible(),
+    page.locator("#plpPills button.plpSddPill").isVisible(),
   ]);
 }

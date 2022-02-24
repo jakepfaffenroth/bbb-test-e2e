@@ -1,13 +1,17 @@
-const { test, expect, ...utils } = require("../utils");
-const pageExamples = require("../json/pageExamples.json");
+const { test, expect, utils } = require("../utils");
+const pages = utils.prepPaths(require("../testPages/general.json"));
 
-for (const example in pageExamples) {
-  test.describe.parallel("Dev Checks " + example, async () => {
-    test.beforeEach(async ({ page }) => {
-      await utils.init({ page, url: pageExamples[example] });
-    });
+for (let examplePage of pages) {
+  examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
 
-    test("Is PWA: " + example, async ({ page }) => {
+  test.describe(examplePage.name, () => {
+    test.describe.configure({ mode: "parallel" });
+    // checkVersion - Validate that PWA and AMP doc versions match
+    test.use({ examplePage, checkVersion: false });
+
+    test.beforeEach(async ({ page }) => {});
+
+    test("Is PWA", async ({ page }) => {
       expect(page.locator("html")).toHaveAttribute("amp-version", /[0-9]/);
       expect(page.locator("body").first()).toHaveClass(/PWAMP/);
     });

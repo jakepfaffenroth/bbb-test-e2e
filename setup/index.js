@@ -1,13 +1,13 @@
 const { expect } = require("@playwright/test");
 const { webkit, devices } = require("@playwright/test");
 const fs = require("fs/promises");
-const utils = require("../utils");
+const utils = require("../utils/utils");
 const colors = require("colors/safe");
 // const { waitForAmpBody } = require("../utils");
 
 module.exports = async (page) => {
-  // await envRouter(page);
   page.on("response", checkResponse);
+  // envRouter(page);
   // console.log('devices:', devices);
   // page.setDefaultNavigationTimeout(60 * 1000);
   // page.waitForNavigation({
@@ -35,23 +35,23 @@ async function checkResponse(res) {
   ];
 
   const failConditions = [
-    { name: "scene7Url", boolean: /s7d9\.scene7./.test(res.url()) },
+    {
+      name: "scene7Url using s7d9 domain",
+      boolean: /s7d9\.scene7./.test(res.url()),
+    },
   ];
 
   failConditions.forEach((condition) => {
     if (condition.boolean) {
       console.log(colors.yellow("Test failed: ") + condition.name);
-      expect(condition.boolean).toBeFalsy();
     }
+    expect(
+      condition.boolean,
+      "Failed network response condition: " + condition.name
+    ).toBeFalsy();
   });
 
   if (!res.ok() && !acceptableBadResponses.some((x) => x == true)) {
-    // console.log("res headers:", await res.allHeaders());
-    // console.log(
-    //   "\033[38;5;226m" +
-    //     `Network Response Failed: ${res.url()} ${res.status()}: ${res.statusText()}` +
-    //     "\033[0m"
-    // );
     console.log(
       colors.yellow("Network Response Failed:") +
         ` ${res.url()} ${res.status()}: ${res.statusText()}`
@@ -60,37 +60,3 @@ async function checkResponse(res) {
   // expect(isResOk).toBeTruthy();
 }
 
-async function envRouter(page) {
-  const env = process.env.ENV;
-  if (env) {
-    await page.route(/em02/, (route, req) => {
-      const oldUrl = req.url();
-      let newUrl;
-      switch (env) {
-        case "em02":
-          newUrl = oldUrl;
-          break;
-        case "et01":
-          newUrl = oldUrl.replace("em02", "et01");
-          break;
-        case "dev01":
-          newUrl = oldUrl
-            .replace("em02-www", "dev01")
-            .replace("em02harmon-www", "dev01harmon");
-          break;
-        case "prod":
-          newUrl = oldUrl
-            .replace("em02-www", "www")
-            .replace("em02harmon-www.bbbyapp", "www.harmonfacevalues")
-            .replace("bbbyapp", "bedbathandbeyond")
-            .replace("bbbabyapp", "buybuybaby")
-            .replace("bbbycaapp.com", "bedbathandbeyond.ca");
-          break;
-        default:
-          newUrl = oldUrl;
-          break;
-      }
-      route.continue({ url: newUrl });
-    });
-  }
-}

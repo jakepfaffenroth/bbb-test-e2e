@@ -1,5 +1,5 @@
-const { test, expect, ...utils } = require("../utils");
-const pdpExamples = require("../json/pdpExamples.json");
+const { test, expect, utils } = require("../utils");
+const pdpExamples = require("../testPages/pdp.json");
 
 for (const example in pdpExamples) {
   const url = pdpExamples[example];

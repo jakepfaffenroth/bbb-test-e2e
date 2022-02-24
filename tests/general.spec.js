@@ -1,12 +1,16 @@
-const { test, expect, ...utils } = require("../utils");
-const pageExamples = require("../json/pageExamples.json");
+const { test, expect, utils } = require("../utils");
+const pages = utils.prepPaths(require("../testPages/general.json"));
 
-for (const example in pageExamples) {
-  test.describe.parallel(`Sitewide Header tests - ${example}`, () => {
+for (let examplePage of pages) {
+  examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
+
+  test.describe(examplePage.name, () => {
     let isMobile = false;
+    test.describe.configure({ mode: "parallel" });
+    // checkVersion flag - Validate that PWA and AMP doc versions match
+    test.use({ examplePage, checkVersion: true });
 
     test.beforeEach(async ({ page }, testInfo) => {
-      await utils.init({ page, url: pageExamples[example] });
       isMobile = testInfo.project?.use?.isMobile;
     });
 
@@ -36,8 +40,8 @@ for (const example in pageExamples) {
       // expect((await pencil.boundingBox()).y).toEqual(0);
       await expect(pencil).toBeHidden();
 
-      let domain = page.url();
-      domain = domain.match(/.+\.com/)[0];
+      let domain = new URL(page.url()).hostname;
+      // domain = domain.match(/.+\.com/)[0];
       // page.waitForNavigation({ waitUntil: "commit" });
       page.goto(domain + "/store/s/fun", { waitUntil: "commit" });
       await utils.waitForAmpBody(page);

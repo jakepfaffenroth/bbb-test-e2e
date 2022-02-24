@@ -1,16 +1,18 @@
-const { test, expect, ...utils } = require("../utils");
-const homepages = require("../json/homePages.json");
+const { test, expect, utils } = require("../utils");
+const pages = utils.prepPaths(require("../testPages/home.json"));
 
-const { waitForAmpBody, search } = require("../utils");
+for (let examplePage of pages) {
+  examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
 
-for (const concept in homepages) {
-  test.describe.parallel("Flow: " + concept, () => {
-    test.beforeEach(async ({ page }) => {
-      await utils.init({ page, url: homepages[concept] });
-      // await search("blue");
-    });
+  test.describe(examplePage.name, () => {
+    test.describe.configure({ mode: "parallel" });
+    // checkVersion flag - Validate that PWA and AMP doc versions match
+    test.use({ examplePage, checkVersion: true });
+
+    test.beforeEach(async ({ page }) => {});
+
     test("Search Color", async ({ page }) => {
-      await search(page, "blue");
+      await utils.search(page, "blue");
 
       const card = page.locator(".prodCard .facet").first();
       const colorInCard = await card.innerText();
