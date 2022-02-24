@@ -4,10 +4,11 @@ const colors = require("colors/safe");
 
 module.exports = async (config) => {
   await checkProxy();
+  checkEnv(config);
 };
 
 async function checkProxy() {
-  const url = "https://em02-www.bbbyapp.com/store?wmPwa&web3feo&wmFast";
+  const url = "https://www.bedbathandbeyond.com/apis/ignoreError";
   const browser = await chromium.launch();
   const page = await browser.newPage();
 
@@ -20,7 +21,7 @@ async function checkProxy() {
     if (resUrl.href != testUrl.href) return;
     const headersArray = await res.headersArray();
     const isProxy =
-      headersArray.filter((x) => /proxy/i.test(x.name)).length > 0;
+      headersArray.filter((x) => /proxyman/i.test(x.name)).length > 0;
 
     console.log(
       isProxy
@@ -31,4 +32,10 @@ async function checkProxy() {
 
   await page.goto(url);
   await browser.close();
+}
+
+function checkEnv(config) {
+  const baseURL = config.projects[0].use.baseURL;
+  let [env] = baseURL.match(/em02|et01|dev01/) || ["prod"];
+  console.log(`${colors.white(" Environment: ")} ${colors.green(env)}\n`);
 }

@@ -3,6 +3,7 @@ require("dotenv").config();
 const { devices } = require("@playwright/test");
 const path = require("path");
 const fs = require("fs");
+const paths = require("./configs/paths.js");
 
 const workerCount = process.env.WORKERS
   ? Number(process.env.WORKERS)
@@ -14,10 +15,10 @@ const workerCount = process.env.WORKERS
  * @type {import('@playwright/test').PlaywrightTestConfig}
  */
 const config = {
-  globalSetup: require.resolve("./setup/global-setup.js"),
+  globalSetup: require.resolve(`./${paths.globalSetupDir}`),
   // globalTeardown: require.resolve("./setup/global-teardown.js"),
 
-  testDir: "./tests",
+  testDir: `./${paths.testDir}`,
   // retries: 1,
   /* Maximum time one test can run for. */
   timeout: 30 * 1000,
@@ -42,7 +43,7 @@ const config = {
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ["list"],
-    ["html", { open: "never", outputFolder: "../test-results/test-report" }],
+    ["html", { open: "never", outputFolder: `../${paths.outputReportDir}` }],
   ],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -53,7 +54,7 @@ const config = {
     // proxy: { server: "http://192.168.0.101:9090" },
 
     /* Base URL to use in actions like `await page.goto('/')`. */
-    // baseURL: 'http://localhost:3000',
+    baseURL: "https://em02-www.bbbyapp.com",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "retain-on-failure",
@@ -131,7 +132,7 @@ const config = {
   ],
 
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
-  outputDir: "../test-results/test-results",
+  outputDir: `../${paths.outputDir}`,
 
   /* Run your local dev server before starting the tests */
   // webServer: {
