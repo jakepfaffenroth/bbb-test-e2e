@@ -8,7 +8,7 @@ module.exports = async (config) => {
 };
 
 async function checkProxy() {
-  const url = "https://www.bedbathandbeyond.com/apis/ignoreError";
+  const url = "https://em02-www.bbbyapp.com/apis/ignoreError?web3feo";
   const browser = await chromium.launch();
   const page = await browser.newPage();
 

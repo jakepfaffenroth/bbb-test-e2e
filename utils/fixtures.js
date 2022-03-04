@@ -1,15 +1,54 @@
 const base = require("@playwright/test");
+const colors = require("colors/safe");
 const { utils } = require("./utils");
-const setup = require("../setup");
+const startNetworkListeners = require("../setup/networkController");
 
 module.exports.test = base.test.extend({
+  /* These are configs */
   examplePage: [{ name: "", path: "" }, { option: true }],
   checkVersion: [false, { option: true }],
-  page: async ({ page, baseURL, examplePage, checkVersion }, use) => {
-    const newBaseURL = setBaseURL(examplePage.name, baseURL);
+  login: [false, { option: true }],
+  /* 
+   * 
+   * These override the built-in fixtures */
+  context: async ({ browser, context, baseURL, examplePage, login }, use) => {
+    if (login) {
+      // Create a new peristent context and use that one instead of the original
+      const storePath = utils.makeStorePath({ url: baseURL, examplePage });
+      const newContext = await browser._browserType.launchPersistentContext(
+        storePath,
+        {
+          headless: false,
+          bypassCSP: true,
+        }
+      );
+      await use(newContext);
+    } else {
+      // Just use the original context without modifying it
+      await use(context);
+    }
+  },
+  page: async ({ page, baseURL, examplePage, checkVersion, login }, use) => {
+    // Change the hostname for the correct concept and environment
+    const { newUrl, concept, env } = utils.setConceptEnv(
+      baseURL,
+      examplePage.name
+    );
+    Object.assign(page, [concept, env]);
 
-    await setup(page);
-    await page.goto(newBaseURL + examplePage.path, { waitUntil: "commit" });
+    await startNetworkListeners(page);
+
+    if (login) {
+      // Before going to the test's examplePage, load the homepage and go through the signin flow
+      await Promise.all([
+        page.waitForNavigation(),
+        page.goto(newUrl + "?wmPwa&web3feo&wmFast", { waitUntil: "commit" }),
+      ]);
+      await utils.waitForAmpBody(page);
+      await utils.signIn(page);
+    }
+    // After signing in (or if already signed in), continue to test page and do various pre-checks
+    await page.goto(newUrl + examplePage.path, { waitUntil: "commit" });
     await utils.getPageType(page);
     await utils.waitForAmpBody(page);
     await utils.getVersionNumber(page);
@@ -17,57 +56,9 @@ module.exports.test = base.test.extend({
       await utils.checkVersion(page);
     }
 
+    // Send the page back to the test to continue with actions and assertions
     await use(page);
   },
 });
 module.exports.expect = base.expect;
 module.exports.utils = utils;
-
-function setBaseURL(name, baseURL) {
-  // const url = new URL(testInfo);
-
-  let [concept] = name.match(/^(?:Baby|Harmon|CA|US)(?=:)/i) || ["us"];
-  let [env] = baseURL.match(/em02|et01|dev01/) || ["prod"];
-  concept = concept.toLowerCase();
-  env = env.toLowerCase();
-  // (1) Change baseURL to match the concept
-  switch (concept) {
-    case "baby":
-      baseURL = "https://em02-www.bbbabyapp.com";
-      break;
-    case "ca":
-      baseURL = "https://em02-www.bbbycaapp.com";
-      break;
-    case "harmon":
-      baseURL = "https://em02harmon-www.bbbyapp.com";
-      break;
-    case "us":
-    default:
-      baseURL = "https://em02-www.bbbyapp.com";
-      break;
-  }
-
-  // (2) Modify baseURL to match the environment
-  switch (env) {
-    case "prod":
-      baseURL = baseURL
-        .replace("em02-www.bbbyapp", "www.bedbathandbeyond")
-        .replace("em02-www.bbbabyapp", "www.buybuybaby")
-        .replace("em02-www.bbbycaapp.com", "www.bedbathandbeyond.ca")
-        .replace("em02harmon-www.bbbyapp", "www.harmonfacevalues");
-      break;
-    case "et01":
-      baseURL = baseURL.replace("em02", "et01");
-      break;
-    case "dev01":
-      baseURL = baseURL
-        .replace("em02-www", "dev01")
-        .replace("em02harmon-www", "dev01harmon");
-      break;
-    default:
-      break;
-  }
-  // console.log("baseURL:", baseURL);
-  // console.log("EXITING FIXTURE");
-  return baseURL;
-}

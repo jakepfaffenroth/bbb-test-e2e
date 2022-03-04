@@ -15,9 +15,9 @@ for (let examplePage of pages) {
   test.describe(examplePage.name, () => {
     test.describe.configure({ mode: "parallel" });
     // checkVersion flag - Validate that PWA and AMP doc versions match
-    test.use({ examplePage, checkVersion: true });
+    test.use({ examplePage, checkVersion: false, login: false });
 
-    test.beforeEach(async ({ page }) => {});
+    // test.beforeEach(async ({ page }) => {});
 
     test("New test", async ({ page }) => {});
   });

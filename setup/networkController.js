@@ -7,38 +7,30 @@ const colors = require("colors/safe");
 
 module.exports = async (page) => {
   page.on("response", checkResponse);
-  // envRouter(page);
-  // console.log('devices:', devices);
-  // page.setDefaultNavigationTimeout(60 * 1000);
-  // page.waitForNavigation({
-  //   waitUntil: "domcontentloaded",
-  //   timeout: 60 * 1000,
-  // });
-
-  // const url = await page.url();
-  // if (/wmPwa/.test(url)) {
-  //   await page.locator("body.amp-shadow").waitFor(60 * 1000);
-  // } else {
-  //   console.log("Not PWA - Not waiting for Amp Body.");
-  // }
-  // checkVersions(page);
+  page.route(/wmSkipPwa/, (route, request) => {
+    route.continue({ url: request.url() + "&web3feo" });
+  });
+  page.route(/wmSkipPwa/, (route, response) => {
+    route.continue({ url: response.url() + "&web3feo" });
+  });
 };
-
-// async function addWompParams(req) {
-//   req.url
-// }
 
 async function checkResponse(res) {
   const acceptableBadResponses = [
     /ad\.doubleclick\.net|mpulse\.net/.test(res.url()),
+    /manifest/.test(res.url()),
     res.status() == 301 || res.status() == 302,
   ];
 
   const failConditions = [
-    {
-      name: "scene7Url using s7d9 domain",
-      boolean: /s7d9\.scene7./.test(res.url()),
-    },
+    // {
+    //   name: "scene7Url using s7d9 domain",
+    //   boolean: /s7d9\.scene7./.test(res.url()),
+    // },
+    // {
+    //   name: "wmSkipPwa",
+    //   boolean: /wmSkipPwa/.test(res.url()),
+    // },
   ];
 
   failConditions.forEach((condition) => {
@@ -59,4 +51,3 @@ async function checkResponse(res) {
   }
   // expect(isResOk).toBeTruthy();
 }
-

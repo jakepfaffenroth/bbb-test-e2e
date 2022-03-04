@@ -66,6 +66,7 @@ const config = {
   projects: [
     {
       name: "MOB: iPhone",
+      testIgnore: /DSK/,
       use: {
         ...devices["iPhone 11"],
       },
@@ -74,7 +75,7 @@ const config = {
     {
       name: "TAB: iPad 768",
       // Don't need to run seo checks at every breakpoint
-      testIgnore: /seo/,
+      testIgnore: /seo|DSK/,
       use: {
         ...devices["iPad (gen 6)"],
       },
@@ -83,7 +84,7 @@ const config = {
     {
       name: "DSK: Chrome",
       // Don't need to run seo checks at every breakpoint
-      testIgnore: /seo/,
+      testIgnore: /seo|MOB/,
       use: {
         ...devices["Desktop Chrome"],
       },
