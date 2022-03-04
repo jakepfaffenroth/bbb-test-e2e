@@ -262,11 +262,6 @@ for (let examplePage of pages) {
         );
         if (facetName.length)
           facetName = facetName[0].trim().replace('"', '\\"');
-        // console.log(
-        //   "await randFacet.textContent():",
-        //   await randFacet.textContent()
-        // );
-        // console.log("facetName:", facetName);
 
         if (usedFacets.indexOf(facetName) > -1) {
           return;

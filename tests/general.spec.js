@@ -1,10 +1,11 @@
 const { test, expect, utils } = require("../utils");
+const { devices } = require("@playwright/test");
 const pages = utils.prepPaths(require("../testPages/general.json"));
 
 for (let examplePage of pages) {
   examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
 
-  test.describe(examplePage.name, () => {
+  test.describe(examplePage.name, (testInfo) => {
     let isMobile = false;
     test.describe.configure({ mode: "parallel" });
     // checkVersion flag - Validate that PWA and AMP doc versions match
@@ -12,6 +13,7 @@ for (let examplePage of pages) {
 
     test.beforeEach(async ({ page }, testInfo) => {
       isMobile = testInfo.project?.use?.isMobile;
+      page.isMobile = isMobile;
     });
 
     test("Pencil Banner collapse and close", async ({ page }) => {
@@ -48,14 +50,52 @@ for (let examplePage of pages) {
       await expect(pencil).toBeHidden();
     });
 
-    if (isMobile) {
-      test("Check burger menu", async ({ page }) => {
-        const burger = page.locator("button.menuBurger");
-        const menuLinks = page.locator("[data-test=categoriesLink]");
-        await burger.click();
+    test.only("Category bar navigation", async ({ page }) => {
+      const navWrap = page.locator("#navWrap");
+      const categoryPill = page.locator(".catBarWrap .navPill:visible").nth(3);
+      const shopAll = page.locator("#navWrap text=/Shop All/i").first();
 
-        expect(menuLinks.first()).toBeVisible();
-      });
-    }
+      await categoryPill.click();
+      await expect(navWrap).toBeVisible();
+      await shopAll.click();
+    });
+
+    // test.only("Check burger menu", async ({ page }, testInfo) => {
+    //   test.skip(/DSK/.test(testInfo.project.name));
+
+    //   const burger = page.locator("button.menuBurger");
+    //   const menuLinks = page.locator("[data-test=categoriesLink]");
+    //   await burger.click();
+
+    //   expect(menuLinks.first()).toBeVisible();
+    // });
+
+    // test.only("Category navigation DSK", async ({ page }, testInfo) => {
+    //   test.skip(!/DSK/.test(testInfo.project.name));
+
+    //   const shopByRoom = page.locator(
+    //     "text=Shop By Room, text=Shop By Activity"
+    //   );
+    //   const navWrap = page.locator("#navWrap");
+
+    //   shopByRoom.click();
+    //   await expect(navWrap).toBeVisible();
+    // });
   });
+
+  // test.describe.only(examplePage.name + " - MOB", () => {
+  //   test.describe.configure({ mode: "parallel" });
+  //   // checkVersion flag - Validate that PWA and AMP doc versions match
+  //   test.use({ examplePage, checkVersion: true });
+
+  //   test("Check burger menu", async ({ page }) => {
+  //     test.skip(/DSK/.test(testInfo.project.name));
+
+  //     const burger = page.locator("button.menuBurger");
+  //     const menuLinks = page.locator("[data-test=categoriesLink]");
+  //     await burger.click();
+
+  //     expect(menuLinks.first()).toBeVisible();
+  //   });
+  // });
 }
