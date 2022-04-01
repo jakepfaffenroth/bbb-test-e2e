@@ -1,9 +1,10 @@
 const { utils } = require("./utils");
+const fetchPIN = require("./fetchPIN.js");
 const { test, expect } = require("./fixtures");
 
 module.exports = {
-  utils,
   test,
   expect,
   utils,
+  fetchPIN,
 };
