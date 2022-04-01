@@ -12,33 +12,34 @@ for (let examplePage of pages) {
     // test.beforeEach(async ({ page }) => {});
 
     // https://bedbathandbeyond.atlassian.net/browse/PP-3466
-    const prodDets = "#prodInfo";
-    const featSpecs = ".featuresSpecCont";
-    const collectionDets = "#collectionChildSlider, #x-childProdsList";
-    const FBT = "#bundleParent";
-    const accessories = "#accessories";
-    const carousels =
-      "#likeSolarSlider4star, #likeSolarSliderLoveThese, #likeSolarSliderAlsoLike, #recentlyViewedWrap";
-    const compCharts = "#productTable";
-    const manufContent = "#webCollageCont:not([hidden])";
-    const shippingPols = "#shippingMessageCont";
-
-    const allEls = [
-      prodDets,
-      featSpecs,
-      collectionDets,
-      FBT,
-      accessories,
-      carousels,
-      compCharts,
-      manufContent,
-      shippingPols,
-    ];
-
-    let prevEl = "#first";
-    let prevOffset = 0;
     test("Check content order ", async ({ page }) => {
       test.slow();
+
+      const prodDets = "#prodInfo";
+      const featSpecs = ".featuresSpecCont";
+      const collectionDets = "#collectionChildSlider, #x-childProdsList";
+      const FBT = "#bundleParent";
+      const accessories = "#accessories";
+      const carousels =
+        "#likeSolarSlider4star, #likeSolarSliderLoveThese, #likeSolarSliderAlsoLike";
+      const compCharts = "#productTable";
+      const manufContent = "#webCollageCont:not([hidden])";
+      const shippingPols = "#shippingMessageCont";
+
+      const allEls = [
+        prodDets,
+        featSpecs,
+        collectionDets,
+        FBT,
+        accessories,
+        carousels,
+        compCharts,
+        manufContent,
+        shippingPols,
+      ];
+
+      let prevEl = "#first";
+      let prevOffset = 0;
 
       const detailsAccord = page.locator(
         '.accordWrap21:not(accExpanded) > [aria-label="Open details"]:visible'
