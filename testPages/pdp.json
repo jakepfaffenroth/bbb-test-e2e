@@ -1,8 +1,20 @@
 {
-  "US:MSWP: Mixer": "/store/product/kitchenaid-artisan-5-qt-stand-mixer/102986",
-  "US:MSWP: Luggage": "/store/product/amka-gem-2-piece-hardside-spinner-carry-on-cosmetic-luggage-set/5407158",
-  "US:SSWP: Humidifier": "/store/product/4-in-1-top-fill-1-gal-cool-mist-humidifier-with-sound-machine/5504935",
-  "US:SSWP: Pans": "/store/product/all-clad-nonstick-hard-anodized-2-piece-fry-pan-set/5494039",
-  "US:SSWP: Pots": "/store/product/all-clad-b1-nonstick-hard-anodized-13-piece-cookware-set/1043102143",
-  "US:MSWP: Pans": "/store/product/anolon-advanced-home-nonstick-2-piece-hard-anodized-aluminum-frying-pan-set/5363190"
+  "US:PDP: MSWP Mixer": "/store/product/kitchenaid-artisan-5-qt-stand-mixer/102986",
+  "US:PDP: MSWP Pans": "/store/product/anolon-advanced-home-nonstick-2-piece-hard-anodized-aluminum-frying-pan-set/5363190",
+  "US:PDP: MSWP Blanket": "/store/product/berkshire-blanket-chunky-boucle-throw-blanket/5444388",
+  "US:PDP: SSWP Air Fyer": "/store/product/modernhome-aria-10-qt-air-fryer-with-accessory-set-in-black/5444715",
+  "US:PDP: SSWP Pans": "/store/product/all-clad-nonstick-hard-anodized-2-piece-fry-pan-set/5494039",
+  "US:PDP: CompChart Pots": "/store/product/our-table-forged-aluminum-ceramic-nonstick-10-piece-cookware-set/5551161",
+  "BABY:PDP: MSWP Car Seat": "/store/product/chicco-keyfit-30-infant-car-seat/5240643",
+  "BABY:PDP: MSWP Potty Chair": "/store/product/babybj-rn-potty-chair/113236",
+  "BABY:PDP: MSWP Stroller": "/store/product/uppababy-vista-v2-stroller/5448329",
+  "BABY:PDP: SSWP Sophie": "/store/product/sophie-la-girafe-teething-toy/1017110357",
+  "BABY:PDP: SSWP Pooh Blanket": "/store/product/aden-anais-essentials-disney-pooh-multicolor-blanket/5391196",
+  "BABY:PDP: SSWP SkipHop Bouncer": "/store/product/skip-hop-silver-lining-cloud-activity-center-and-exerciser/5218314",
+  "CA:PDP: MSWP Mixer": "/store/product/kitchenaid-artisan-5-qt-stand-mixer/102986",
+  "CA:PDP: MSWP Pans": "/store/product/anolon-advanced-home-nonstick-2-piece-hard-anodized-aluminum-frying-pan-set/5363190",
+  "CA:PDP: MSWP Blanket": "/store/product/berkshire-blanket-chunky-boucle-throw-blanket/5444388",
+  "CA:PDP: SSWP Air Fyer": "/store/product/modernhome-aria-10-qt-air-fryer-with-accessory-set-in-black/5444715",
+  "CA:PDP: SSWP Pans": "/store/product/all-clad-nonstick-hard-anodized-2-piece-fry-pan-set/5494039",
+  "CA:PDP: CompChart Pots": "/store/product/our-table-forged-aluminum-ceramic-nonstick-10-piece-cookware-set/5551161"
 }

@@ -1,7 +1,8 @@
 {
   "US:Home": "/store/",
-  "US:SSWP Pans": "/store/product/all-clad-nonstick-hard-anodized-2-piece-fry-pan-set/5494039",
-  "US:MSWP Mixer": "/store/product/kitchenaid-artisan-5-qt-stand-mixer/102986",
+  "US:PDP: SSWP Pans": "/store/product/all-clad-nonstick-hard-anodized-2-piece-fry-pan-set/5494039",
+  "US:PDP: MSWP Mixer": "/store/product/kitchenaid-artisan-5-qt-stand-mixer/102986",
+  "US:PDP: MSWP Mixer PLA": "/store/product/kitchenaid-reg-artisan-reg-5-qt-stand-mixer/102986?skuId=69679671&mcid=PS_googlepla_nonbrand_kitchenelectrics_local&product_id=69679671&adtype=pla&product_channel=local&enginename=google&creative=399038037593&device=c&matchtype=&network=g&utm_campaignid=71700000037211805&utm_adgroupid=58700005460329802&targetid=92700049832667644&gclid=CjwKCAjwnPOEBhA0EiwA609ReZ6B9Ds66DsObIx1uFRTAxZ1v4xzx2bzHdHJJmKMG8m_c5QP6AsJtRoCMPUQAvD_BwE&gclsrc=aw.ds",
   "US:CLP: Bedding": "/store/category/bedding/10001",
   "US:CLP: Bath": "/store/category/bath/13432",
   "Baby:CLP: Strollers": "/store/category/strollers/32571",
@@ -16,5 +17,5 @@
   "Baby:Brand: Stokke": "/store/brand/stokke/489",
   "Harmon:Brand: Crest": "/store/brand/crest/2386",
   "US:Search: fun": "/store/s/fun",
-  "US:Search: no results": "/store/s/jhtfvuytdv"
+  "US:Search: no results": "/store/s/jhtfvuylkjasndflkjtdv"
 }
