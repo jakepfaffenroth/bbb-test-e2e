@@ -1,15 +1,15 @@
 const base = require("@playwright/test");
 const colors = require("colors/safe");
 const { utils } = require("./utils");
-const startNetworkListeners = require("../setup/networkController");
+const { startNetworkListeners } = require("../setup");
 
 module.exports.test = base.test.extend({
   /* These are configs */
   examplePage: [{ name: "", path: "" }, { option: true }],
   checkVersion: [false, { option: true }],
   login: [false, { option: true }],
-  /* 
-   * 
+  /*
+   *
    * These override the built-in fixtures */
   context: async ({ browser, context, baseURL, examplePage, login }, use) => {
     if (login) {
@@ -34,8 +34,9 @@ module.exports.test = base.test.extend({
       baseURL,
       examplePage.name
     );
-    Object.assign(page, [concept, env]);
+    Object.assign(page, { concept, env });
 
+    // Handle not-ok status codes and wmSkipPwa redirects
     await startNetworkListeners(page);
 
     if (login) {
@@ -45,13 +46,14 @@ module.exports.test = base.test.extend({
         page.goto(newUrl + "?wmPwa&web3feo&wmFast", { waitUntil: "commit" }),
       ]);
       await utils.waitForAmpBody(page);
-      await utils.signIn(page);
+      await utils.signIn({page});
     }
-    // After signing in (or if already signed in), continue to test page and do various pre-checks
+    
+    // Continue to test page and do various pre-checks
     await page.goto(newUrl + examplePage.path, { waitUntil: "commit" });
     await utils.getPageType(page);
     await utils.waitForAmpBody(page);
-    await utils.getVersionNumber(page);
+    await utils.getVersionNumber(page, examplePage);
     if (checkVersion) {
       await utils.checkVersion(page);
     }

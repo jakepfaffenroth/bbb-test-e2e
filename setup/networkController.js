@@ -17,7 +17,7 @@ module.exports = async (page) => {
 
 async function checkResponse(res) {
   const acceptableBadResponses = [
-    /ad\.doubleclick\.net|mpulse\.net/.test(res.url()),
+    /ad\.doubleclick|mpulse|narrativ|quantum|services\/conversations|recommendations\/also-bought/.test(res.url()),
     /manifest/.test(res.url()),
     res.status() == 301 || res.status() == 302,
   ];

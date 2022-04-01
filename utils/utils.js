@@ -74,7 +74,7 @@ class Utils {
    * Get the PWA and AMP doc verison numbers and store them on the page fixture
    * @param {object} page Page fixture
    */
-  getVersionNumber = async function (page) {
+  getVersionNumber = async function (page, examplePage) {
     const pwaVersion = await page.locator("html").getAttribute("data-version");
     const ampDocVersion = await page
       .locator("body.amp-shadow")
@@ -86,10 +86,9 @@ class Utils {
     };
     const logMsg = `${pwaVersion}/${ampDocVersion}`;
     console.log(
-      "versions PWA/AMP: " +
-        (pwaVersion == ampDocVersion
-          ? colors.green(logMsg)
-          : colors.red(logMsg))
+      `PWA/AMP ${
+        pwaVersion == ampDocVersion ? colors.green(logMsg) : colors.red(logMsg)
+      } - ${examplePage.name}`
     );
   };
 
@@ -370,23 +369,32 @@ class Utils {
   };
 
   /**
-   * Sign in flow - Clicks sign in button (or clicks through mobile menu first) until it navigates to login page. Then enters concept- and env-specific email and password and submits form. Then waits for, and checks that, the My Account page has loaded and that the login was successful. Close this page because the test example page will be loaded next.
-   * @param {object} page Page fixture
+   * Sign in flow - Clicks sign in button (or clicks through mobile menu first) until it navigates to login page. Then enters concept- and env-specific email and password and submits form. Then waits for, and checks that, the My Account page has loaded and that the login was successful.
+   * @param {object} object
+   * @param {object} object.page Page fixture
    * @returns
    */
-  signIn = async function (page) {
+  signIn = async function ({ page }) {
     if (!page.concept || !page.env) {
       const { concept, env } = this.setConceptEnv(page.url());
-      Object.assign(page, [concept, env]);
+      Object.assign(page, { concept, env });
     }
+    // Predictable email format
     const email = `${process.env.EMAIL_BASE}+bbb${page.env}${page.concept}@wompmobile.com`;
     const pw = process.env.EMAIL_PW;
 
+    const currentPage = await page.url();
+
+    // await page.pause();
+    // Open menus and click sign in to get to react login page
     if (page.isMobile) {
       await page.click("data-test=openMenu");
       if (!(await page.locator('button:text("my account")').isVisible())) {
         await page.click('.navItemBtn:visible:text-matches("sign in", "i")');
-        await page.click('#accountV2List >> text="Sign In"');
+        await Promise.all([
+          page.waitForNavigation(),
+          page.click('#accountV2List >> text="Sign In"'),
+        ]);
       } else {
         console.log(colors.green("LOGGED IN"));
         return;
@@ -396,40 +404,75 @@ class Utils {
         .locator('[data-test="HomeBurgerMenu"] p:has-text("sign in")')
         .isVisible()
     ) {
-      await Promise.all([
-        page.waitForNavigation(),
-        page.click('text="sign in"'),
-      ]);
+      // await Promise.all([
+      // page.waitForNavigation(),
+      await page.click('text="sign in"');
+      // ]);
     } else {
       console.log(colors.green("LOGGED IN"));
       return;
     }
 
-    const isLoggedIn = (await page.locator('text="My Account"').count()) > 0;
-    expect(isLoggedIn).toBeTruthy();
-
+    // Are we already logged in?
+    let isLoggedIn = (await page.locator('text="My Account"').count()) > 0;
     if (isLoggedIn) {
       console.log(colors.green("LOGGED IN"));
       return;
     }
 
+    // if the popup CTA opens, close it so we can continue
+    if (
+      await (await page.locator("body>div[id^=bx-campaign]").first()).count()
+    ) {
+      // console.log(colors.redBG.white("FOUND IT"));
+      await page.locator('[aria-label="close dialog"]:visible').click();
+    }
+
+    // Fill in login form
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', pw);
 
-    await page.route(/loginSecure/i, async (route, request) => {
-      route.continue({ url: request.url() + "?&web3feo" });
-    });
-    await Promise.all([
-      page.waitForNavigation(),
-      page.locator("#signin-submit").click(),
-    ]);
+    // Add web3feo to requests from react login page (really just need it appended to the loginSecure endpoint)
+    async function interceptLoginSecure() {
+      await page.route(/loginSecure/i, async (route, request) => {
+        route.continue({ url: request.url() + "?&web3feo" });
+      });
+    }
+    await interceptLoginSecure();
 
-    if (await page.locator('text="access PIN"').isVisible()) {
+    page.on("response", async (res) => {
+      if (/loginSecure/.test(res.url()) && res.status() > 400) {
+        await interceptLoginSecure();
+        await submitLoginForm();
+      }
+    });
+
+    // Submit login form
+    async function submitLoginForm() {
+      if (
+        await (await page.locator("body>div[id^=bx-campaign]").first()).count()
+      ) {
+        // console.log(colors.redBG.white("FOUND IT"));
+        await page.locator('[aria-label="close dialog"]:visible').click();
+      }
+
+      await Promise.all([
+        page.waitForNavigation(),
+        page.locator("#signin-submit").click(),
+      ]);
+    }
+    await submitLoginForm();
+
+    //Need a better wait than a timeout before checking for logged-in status
+    await page.waitForTimeout(3 * 1000);
+    isLoggedIn = (await page.locator("text=/My Account/i").count()) > 0;
+    expect(isLoggedIn, "Should be logged in here").toBeTruthy();
+
+    if (await page.locator("text=/access PIN/i").isVisible()) {
       console.log(colors.red("Manual authentication needed"));
-    } else if (await page.locator('text="My Account Overview"').isVisible()) {
+    } else if (await page.locator("text=/My Account Overview/i").isVisible()) {
       console.log(colors.green("LOGGED IN"));
     }
-    await page.close();
   };
 
   /**

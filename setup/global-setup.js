@@ -24,9 +24,9 @@ async function checkProxy() {
       headersArray.filter((x) => /proxyman/i.test(x.name)).length > 0;
 
     console.log(
-      isProxy
-        ? colors.black.bgGreen(" Routing through proxy ") + "\n"
-        : colors.black.bgYellow(" Not routing through proxy ") + "\n"
+      `Proxy: ${
+        isProxy ? colors.black.bgGreen(" ON ") : colors.black.bgYellow(" OFF ")
+      }`
     );
   });
 
@@ -37,5 +37,5 @@ async function checkProxy() {
 function checkEnv(config) {
   const baseURL = config.projects[0].use.baseURL;
   let [env] = baseURL.match(/em02|et01|dev01/) || ["prod"];
-  console.log(`${colors.white(" Environment: ")} ${colors.green(env)}\n`);
+  console.log(`Environment: ${colors.green(env)}\n`);
 }
