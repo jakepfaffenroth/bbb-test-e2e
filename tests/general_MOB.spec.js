@@ -7,16 +7,15 @@ for (let examplePage of pages) {
   test.describe(examplePage.name, () => {
     test.describe.configure({ mode: "parallel" });
     // checkVersion flag - Validate that PWA and AMP doc versions match
-    test.use({ examplePage, checkVersion: true });
+    test.use({ examplePage, checkVersion: false });
 
     // test.beforeEach(async ({ page }) => {});
 
-    test.only("Check burger menu", async ({ page }) => {
+    test("Check burger menu", async ({ page }) => {
       const burger = page.locator("button.menuBurger");
-      const menuLinks = page.locator("[data-test=categoriesLink]");
+      const sidebar = page.locator("#navWrap");
       await burger.click();
-
-      expect(menuLinks.first()).toBeVisible();
+      await expect(sidebar).toBeVisible();
     });
   });
 }

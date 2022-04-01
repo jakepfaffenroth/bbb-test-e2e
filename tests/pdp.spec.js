@@ -1,13 +1,17 @@
 const { test, expect, utils } = require("../utils");
-const pdpExamples = require("../testPages/pdp.json");
+const pages = utils.prepPaths(require("../testPages/pdp.json"));
 
-for (const example in pdpExamples) {
-  const url = pdpExamples[example];
+for (let examplePage of pages) {
+  examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
+  // const url = pdpExamples[example];
   let shipIt, SDD, pickUp, fulfillmentBtn;
 
-  test.describe.parallel("Fulfillment: " + example, () => {
+  test.describe(examplePage.name, () => {
+    test.describe.configure({ mode: "parallel" });
+    // checkVersion flag - Validate that PWA and AMP doc versions match
+    test.use({ examplePage, checkVersion: false });
+
     test.beforeEach(async ({ page }) => {
-      await utils.init({ page, url });
       shipIt = page.locator('#fullfillSelector div[option="cart"]:visible');
       SDD = page.locator('#fullfillSelector div[option="deliverIt"]:visible');
       pickUp = page.locator('#fullfillSelector div[option="pickItUp"]:visible');
@@ -24,8 +28,6 @@ for (const example in pdpExamples) {
       const cartCountBefore = await utils.getCartCount(page);
       await fulfillmentBtn.click();
       await page.waitForSelector("#modalCartWrap");
-      // await page.waitForLoadState("networkidle");
-      // await page.waitForResponse(/cart\/item/i);
 
       test.fail(
         await page.locator("#modalCartWrap .panelAlert:visible").isVisible(),

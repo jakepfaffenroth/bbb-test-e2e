@@ -3,6 +3,11 @@ const pages = utils.prepPaths(require("../testPages/general.json"));
 
 for (let examplePage of pages) {
   examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
+  // Account for query params in examplepage url
+  const [search] = examplePage.path.match(/\?.*/) || [""];
+  if (!/^\?wmPwa/.test(search)) {
+    examplePage.path = examplePage.path.replace("?wmPwa", "&wmPwa");
+  }
 
   test.describe(examplePage.name, () => {
     test.describe.configure({ mode: "parallel" });
@@ -12,8 +17,6 @@ for (let examplePage of pages) {
       test.setTimeout(60 * 1000);
     });
 
-    // test.skip("Check version", async ({ page }) =>
-    //   await utils.checkVersion(page));
     test("Validate title tag", async ({ page }) => {
       page.waitForTimeout(10 * 1000);
 
@@ -35,8 +38,25 @@ for (let examplePage of pages) {
         .toEqual(1);
       // const metaDescContent = await metaDesc.getAttribute("content");
       await expect.soft(metaDesc).not.toHaveAttribute("content", /undefined/);
-      await expect.soft(metaDesc).toHaveAttribute("content", /.*/);
+      await expect.soft(metaDesc).toHaveAttribute("content", /.+/);
     });
+    test("Validate meta keywords", async ({ page }) => {
+      page.waitForTimeout(10 * 1000);
+
+      const metaKeywords = page.locator('head meta[name="keywords"]');
+
+      const metaKeywordsCount = await metaKeywords.count();
+
+      expect
+        .soft(metaKeywordsCount, "Should have exactly one meta description")
+        .toEqual(1);
+      // const metaKeywordsContent = await metaKeywords.getAttribute("content");
+      await expect
+        .soft(metaKeywords)
+        .not.toHaveAttribute("content", /undefined/);
+      await expect.soft(metaKeywords).toHaveAttribute("content", /.+/);
+    });
+
     test("Validate robots tag", async ({ page }) => {
       const robots = page.locator('head meta[name="robots"]');
 
@@ -60,6 +80,22 @@ for (let examplePage of pages) {
       expect
         .soft(canonicalCount, "Should have canonical links")
         .toBeGreaterThanOrEqual(1);
+    });
+    test("Validate rel=amphtml href", async ({ page, context }) => {
+      const url = page.url();
+      const { origin, pathname } = new URL(url);
+      const amphtmlHrefLocator = page.locator('head link[rel="amphtml"]');
+      const amphtmlHrefCount = await amphtmlHrefLocator.count();
+      const pwaAmphtmlHref = amphtmlHrefCount
+        ? (await amphtmlHrefLocator.getAttribute("href")).replace(
+            "&web3feo&wmFast&no-cache&no-bucket=true",
+            ""
+          )
+        : "";
+
+      expect
+        .soft(pwaAmphtmlHref, "Pwa and react rel=amphtml href should match")
+        .toBe(origin + "/amp" + pathname);
     });
     test("Validate H1 heading", async ({ page }) => {
       // :light prevents from looking in the shadow dom
@@ -127,7 +163,7 @@ for (let examplePage of pages) {
       const description = page.locator('meta[name="twitter:description"]');
       const image = page.locator('meta[name="twitter:image"]');
 
-      // const twitterMeta = page.locator('meta[name^="twitter:"]');
+
       const [
         cardCount,
         account_idCount,

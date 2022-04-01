@@ -9,7 +9,7 @@ for (let examplePage of pages) {
     let isMobile = false;
     test.describe.configure({ mode: "parallel" });
     // checkVersion flag - Validate that PWA and AMP doc versions match
-    test.use({ examplePage, checkVersion: true });
+    test.use({ examplePage, checkVersion: false });
 
     test.beforeEach(async ({ page }, testInfo) => {
       isMobile = testInfo.project?.use?.isMobile;
@@ -53,7 +53,7 @@ for (let examplePage of pages) {
     test.only("Category bar navigation", async ({ page }) => {
       const navWrap = page.locator("#navWrap");
       const categoryPill = page.locator(".catBarWrap .navPill:visible").nth(3);
-      const shopAll = page.locator("#navWrap text=/Shop All/i").first();
+      const shopAll = page.locator("#navWrap >> text=/Shop All/i").first();
 
       await categoryPill.click();
       await expect(navWrap).toBeVisible();

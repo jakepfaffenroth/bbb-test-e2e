@@ -12,8 +12,11 @@ for (let examplePage of pages) {
     test.beforeEach(async ({ page }) => {});
 
     test("Is PWA", async ({ page }) => {
-      expect(page.locator("html")).toHaveAttribute("amp-version", /[0-9]/);
-      expect(page.locator("body").first()).toHaveClass(/PWAMP/);
+      await expect(page.locator("html")).toHaveAttribute(
+        "amp-version",
+        /[0-9]+/
+      );
+      await expect(page.locator("body").first()).toHaveClass(/PWAMP/);
     });
 
     test("No exposed code", async ({ page }) => {
