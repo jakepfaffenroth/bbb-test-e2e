@@ -21,7 +21,7 @@ async function checkProxy() {
     if (resUrl.href != testUrl.href) return;
     const headersArray = await res.headersArray();
     const isProxy =
-      headersArray.filter((x) => /proxyman/i.test(x.name)).length > 0;
+      headersArray.filter((x) => /x-womp/i.test(x.name)).length > 0;
 
     console.log(
       `Proxy: ${
