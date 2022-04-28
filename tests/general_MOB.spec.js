@@ -11,7 +11,7 @@ for (let examplePage of pages) {
 
     // test.beforeEach(async ({ page }) => {});
 
-    test("Check burger menu", async ({ page }) => {
+    test("Check burger menu #smoke", async ({ page }) => {
       const burger = page.locator("button.menuBurger");
       const sidebar = page.locator("#navWrap");
       await burger.click();

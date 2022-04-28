@@ -1,4 +1,6 @@
 require("dotenv").config();
+const fs = require("fs");
+const parse = require("csv-parse");
 const base = require("@playwright/test");
 const expect = base.expect;
 const colors = require("colors/safe");
@@ -75,6 +77,15 @@ class Utils {
    * @param {object} page Page fixture
    */
   getVersionNumber = async function (page, examplePage) {
+    if (/(\?|&)amp/.test(page.url())) {
+      page.version = {
+        // pwa: "",
+        // ampDoc: ampDocVersion,
+        // versionMatch: pwaVersion == ampDocVersion,
+      };
+      return;
+    }
+
     const pwaVersion = await page.locator("html").getAttribute("data-version");
     const ampDocVersion = await page
       .locator("body.amp-shadow")
@@ -119,7 +130,7 @@ class Utils {
    * @returns {string}
    */
   getPageType = async function (page) {
-    await page.waitForFunction(() => window.wmPwa);
+    await page.waitForFunction(() => window.wData || window.wmPwa);
     const pageType = await page.evaluate(() => {
       const destructure = ({
         isHomeV2Reg,
@@ -136,10 +147,20 @@ class Utils {
         clp: isCLPReg,
         search: isSearchReg,
       });
-      const pageTypeTests = destructure(wmPwa.session.docTests);
+      const pageTypeTests = destructure(
+        window.wData
+          ? window.wData.pwaSessionInit.docTests
+          : window.wmPwa.session.docTests
+      );
       let pageType;
       for (const type in pageTypeTests) {
-        if (pageTypeTests[type].test(location.pathname)) {
+        if (typeof pageTypeTests[type] == "string") {
+          pageTypeTests[type] = new RegExp(pageTypeTests[type]);
+        }
+        if (
+          pageTypeTests[type] &&
+          pageTypeTests[type].test(location.pathname)
+        ) {
           pageType = type;
         }
       }
@@ -274,7 +295,7 @@ class Utils {
   }) {
     if (!page || !selector) return "MISSING_ARGS";
     const elements = page.locator(selector);
-
+    await elements.first().waitFor();
     // if (scroll) await this.autoScroll(page, 100);
     // await elements.first().waitFor();
     // if ((await elements.first().count()) == 0) {
@@ -336,6 +357,7 @@ class Utils {
 
       await nextPageBtn.scrollIntoViewIfNeeded();
       await nextPageBtn.click();
+      await page.waitForTimeout(500);
       await page.waitForSelector("#plpListInner div[role=list]");
 
       const pageNext = Number(
@@ -359,6 +381,7 @@ class Utils {
 
       await prevPageBtn.scrollIntoViewIfNeeded();
       await prevPageBtn.click();
+      await page.waitForTimeout(500);
       await page.waitForSelector("#plpListInner div[role=list]");
 
       const pagePrev = Number(

@@ -11,13 +11,14 @@ for (let examplePage of pages) {
 
     // test.beforeEach(async ({ page }) => {});
 
-    test("Shop by XXX Navigation DSK", async ({ page }) => {
+    test("Shop by XXX Navigation DSK #smoke", async ({ page }) => {
       const shopByRoom = page.locator("text=/Shop By Room|Shop By Activity/i");
       const navWrap = page.locator("#navWrap");
 
       await shopByRoom.click();
       await expect(navWrap).toBeVisible();
 
+      // move mouse out of nav flyout to test that it closes
       await page.mouse.move(0, 0);
       await expect(navWrap).toBeHidden();
 
@@ -32,7 +33,7 @@ for (let examplePage of pages) {
       await page.waitForNavigation(/*{ waitUntil: "networkidle" }*/);
       await utils.waitForAmpBody(page);
       // console.log("page.url():", new URL(page.url()).pathname);
-      await page.pause();
+      // await page.pause();
       const pathname = new URL(page.url()).pathname.replace(/\/$/, "");
       expect(pathname).toEqual(randNavItemPathname);
     });
@@ -51,7 +52,7 @@ async function getRandNavItem(page) {
       randNavItem = await getRandNavItem(page);
     }
   }
-  console.log("randNavItem:", randNavItem);
+  // console.log("randNavItem:", randNavItem);
 
   test.skip(
     /NONE_FOUND|MISSING_ARGS/.test(randNavItem),

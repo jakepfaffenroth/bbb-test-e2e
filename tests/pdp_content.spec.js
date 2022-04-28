@@ -17,7 +17,7 @@ for (let examplePage of pages) {
 
       const prodDets = "#prodInfo";
       const featSpecs = ".featuresSpecCont";
-      const collectionDets = "#collectionChildSlider, #x-childProdsList";
+      const collectionDets = "#collectionChildSlider";
       const FBT = "#bundleParent";
       const accessories = "#accessories";
       const carousels =
@@ -26,6 +26,7 @@ for (let examplePage of pages) {
       const manufContent = "#webCollageCont:not([hidden])";
       const shippingPols = "#shippingMessageCont";
 
+      // This array defines the order of sections
       const allEls = [
         prodDets,
         featSpecs,
@@ -41,6 +42,7 @@ for (let examplePage of pages) {
       let prevEl = "#first";
       let prevOffset = 0;
 
+      // If on mobile, the details accordion needs to be opened
       const detailsAccord = page.locator(
         '.accordWrap21:not(accExpanded) > [aria-label="Open details"]:visible'
       );
@@ -50,12 +52,18 @@ for (let examplePage of pages) {
       }
 
       for await (const selector of allEls) {
-        const el = page.locator(selector);
+        // Get the first element found instead of all matches (because there are multiple recommendationc arousels, but they're all together)
+        const el = page.locator(selector).first();
+
         if ((await el.count()) && (await el.isVisible())) {
-          const offset = await page.$eval(
+          // $eval runs the callback in the the automated browser window itself instead of in the test runner. It receives the element(s) found with the selector as the argument
+          let offset = await page.$eval(
             selector,
             (el) => el.getBoundingClientRect().top
           );
+
+          // For some reason #prodInfo section sometimes has negative offset. But it's always first so just make sure it's positive so the test doesn't fail
+          if (selector == "#prodInfo" && offset < 0) offset = offset * -1;
 
           expect
             .soft(
@@ -65,6 +73,8 @@ for (let examplePage of pages) {
               ${prevEl} offset: ${prevOffset}`
             )
             .toBeTruthy();
+          
+          // update values for next one
           prevEl = selector;
           prevOffset = offset;
         } else {

@@ -18,7 +18,7 @@ for (let examplePage of pages) {
       fulfillmentBtn = page.locator(".fulfillCtaCont button:visible");
     });
 
-    test("ATC", async ({ page }) => {
+    test("ATC #smoke", async ({ page }) => {
       await fulfillmentBtn.waitFor();
 
       if (await shipIt.isVisible()) expect(shipIt).toHaveClass(/active/i);

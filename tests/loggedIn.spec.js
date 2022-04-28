@@ -18,13 +18,12 @@ for (let examplePage of pages) {
       isMobile = page.isMobile;
     });
 
-    test("Log in and return to PWA", async ({ page }) => {
+    test("Log in and return to PWA #smoke", async ({ page }) => {
       test.slow();
       const sourcePage = page.url();
 
       await utils.signIn({ page });
       while (page.url() != sourcePage) {
-        console.log("going back...");
         await page.goBack();
       }
 
