@@ -7,6 +7,7 @@ module.exports.test = base.test.extend({
   /* These are configs */
   examplePage: [{ name: "", path: "" }, { option: true }],
   checkVersion: [false, { option: true }],
+  watchConsole: [false, { option: true }],
   login: [false, { option: true }],
   /*
    *
@@ -28,13 +29,35 @@ module.exports.test = base.test.extend({
       await use(context);
     }
   },
-  page: async ({ page, baseURL, examplePage, checkVersion, login }, use) => {
+  page: async (
+    { page, baseURL, examplePage, checkVersion, watchConsole, login },
+    use
+  ) => {
     // Change the hostname for the correct concept and environment
     const { newUrl, concept, env } = utils.setConceptEnv(
       baseURL,
       examplePage.name
     );
     Object.assign(page, { concept, env });
+
+    /**
+     * Watch for console messages
+     * watchConsole can be boolean or a regex
+     * if watchConsole === true, forward all browser console msgs to playwright
+     * if watchConsole is a regex, only print matching msgs and push the msg to page.foundConsoleLogs array.
+     * The page.foundConsoleLogs array is useful for assertions (e.g., see ampValidation.spec.js)
+     **/
+    if (watchConsole) {
+      page.on("console", (msg) => {
+        if (typeof watchConsole == "boolean") {
+          console.log(msg);
+        } else if (watchConsole.test(msg.text())) {
+          console.log(msg);
+          page.foundConsoleLogs = page.foundConsoleLogs || [];
+          page.foundConsoleLogs.push(msg);
+        }
+      });
+    }
 
     // Handle not-ok status codes and wmSkipPwa redirects
     await startNetworkListeners(page);
@@ -46,9 +69,9 @@ module.exports.test = base.test.extend({
         page.goto(newUrl + "?wmPwa&web3feo&wmFast", { waitUntil: "commit" }),
       ]);
       await utils.waitForAmpBody(page);
-      await utils.signIn({page});
+      await utils.signIn({ page });
     }
-    
+
     // Continue to test page and do various pre-checks
     await page.goto(newUrl + examplePage.path, { waitUntil: "commit" });
     await utils.getPageType(page);
