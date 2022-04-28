@@ -1,5 +1,8 @@
 {
   "US:Home": "/store/",
+  "Baby:Home": "/store/",
+  "CA:Home": "/store/",
+  "Harmon:Home": "/store/",
   "US:PDP: SSWP Pans": "/store/product/all-clad-nonstick-hard-anodized-2-piece-fry-pan-set/5494039",
   "US:PDP: MSWP Mixer": "/store/product/kitchenaid-artisan-5-qt-stand-mixer/102986",
   "US:PDP: MSWP Mixer PLA": "/store/product/kitchenaid-reg-artisan-reg-5-qt-stand-mixer/102986?skuId=69679671&mcid=PS_googlepla_nonbrand_kitchenelectrics_local&product_id=69679671&adtype=pla&product_channel=local&enginename=google&creative=399038037593&device=c&matchtype=&network=g&utm_campaignid=71700000037211805&utm_adgroupid=58700005460329802&targetid=92700049832667644&gclid=CjwKCAjwnPOEBhA0EiwA609ReZ6B9Ds66DsObIx1uFRTAxZ1v4xzx2bzHdHJJmKMG8m_c5QP6AsJtRoCMPUQAvD_BwE&gclsrc=aw.ds",
@@ -7,15 +10,16 @@
   "US:CLP: Bath": "/store/category/bath/13432",
   "Baby:CLP: Strollers": "/store/category/strollers/32571",
   "US:L2: Dinnerware": "/store/category/dining/dinnerware/10532/",
-  "US:L2: Faceted Rugs": "/store/s/kitchen-rugs/_accent-rug/c19mX2JpblByb2R1Y3RfVHlwZToiQWNjZW50IFJ1ZyI=",
   "US:L2: Pillows": "/store/category/bedding/pillows/16064",
   "US:L3: Bev Dispensers": "/store/category/dining/glasses-drinkware/beverage-dispensers/12926",
+  "US:L3: Faceted Espresso": "/store/category/kitchen/coffee-tea/coffee/12052/_espresso/c19mX2JpblR5cGVfb2ZfQmV2ZXJhZ2U6IkVzcHJlc3NvIg==",
   "Baby:L3: Infant Car Seats": "/store/category/car-seats/car-seats/infant-car-seats/32594",
   "US:L3: Roasters": "/store/category/kitchen/cookware/roasters/12595",
   "US:Brand: iRobot": "/store/brand/irobot/1385/",
   "US:Brand: Ninja": "/store/brand/ninja/778/",
   "Baby:Brand: Stokke": "/store/brand/stokke/489",
   "Harmon:Brand: Crest": "/store/brand/crest/2386",
+  "US:Search: Faceted Rugs": "/store/s/kitchen-rugs/_accent-rug/c19mX2JpblByb2R1Y3RfVHlwZToiQWNjZW50IFJ1ZyI=",
   "US:Search: fun": "/store/s/fun",
   "US:Search: no results": "/store/s/jhtfvuylkjasndflkjtdv"
 }
