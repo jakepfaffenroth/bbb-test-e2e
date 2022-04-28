@@ -1,25 +1,41 @@
-const { test, expect, utils } = require("../utils");
+const { test, expect, start, utils } = require("../utils");
 const pages = utils.prepPaths(require("../testPages/general.json"));
 
 for (let examplePage of pages) {
-  examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
+  const testConfig = {
+    checkVersion: false, // Fail test if Appshell & AMP doc versions mismatch?
+    login: false, // Perform login flow prior to running tests?
+    watchConsole: false, // Boolean or regex
+    examplePage,
+    params: "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true",
+  };
 
   test.describe(examplePage.name, () => {
     test.describe.configure({ mode: "parallel" });
-    // checkVersion - Validate that PWA and AMP doc versions match
-    test.use({ examplePage, checkVersion: false });
 
-    test.beforeEach(async ({ page }) => {});
+    let page;
 
-    test("Is PWA", async ({ page }) => {
-      await expect(page.locator("html")).toHaveAttribute(
-        "amp-version",
-        /[0-9]+/
-      );
-      await expect(page.locator("body").first()).toHaveClass(/PWAMP/);
+    test.beforeAll(async ({ baseURL, browser }, testInfo) => {
+      Object.assign(testInfo, { testConfig, baseURL });
+      page = await start({ browser, testInfo });
     });
 
-    test("No exposed code", async ({ page }) => {
+    test.afterAll(async () => {
+      await page.close();
+    });
+
+    // test.beforeEach(async () => {});
+
+    test("Basic dev checks", () => {
+      test.step("Is PWA", async () => {
+        await expect(page.locator("html")).toHaveAttribute(
+          "amp-version",
+          /[0-9]+/
+        );
+        await expect(page.locator("body").first()).toHaveClass(/PWAMP/);
+      });
+    });
+    test("No exposed code #smoke", async () => {
       // console.log(test.info().project.use);
       const exposedCode = await page.evaluate(() => {
         let node,
@@ -71,7 +87,7 @@ for (let examplePage of pages) {
       expect(exposedCode.length).toEqual(0);
     });
 
-    test("No duplicate IDs", async ({ page }) => {
+    test("No duplicate IDs", async () => {
       const exclusions = ["symbol#heart"];
 
       let dupes = await page.evaluate((exclusions) => {

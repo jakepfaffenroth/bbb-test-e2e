@@ -11,7 +11,7 @@ for (let examplePage of pages) {
 
     // test.beforeEach(async ({ page }) => {});
 
-    test(" Should have noindex, nofollow", async ({ page }) => {
+    test("Should have noindex, nofollow", async ({ page }) => {
       // const robotsValue = await page
       //   .locator(":light head mata[name=robots]")
       //   .getAttribute("content");

@@ -1,98 +1,83 @@
-const { test, expect, utils } = require("../utils");
+const { test, expect, start, utils } = require("../utils");
 const pages = utils.prepPaths(require("../testPages/plp.json"));
 
 for (let examplePage of pages) {
-  examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
+  const testConfig = {
+    checkVersion: false, // Fail test if Appshell & AMP doc versions mismatch?
+    login: false, // Perform login flow prior to running tests?
+    watchConsole: false, // Boolean or regex
+    examplePage,
+    params: "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true",
+  };
 
   test.describe(examplePage.name, () => {
     test.describe.configure({ mode: "parallel" });
-    // checkVersion flag - Validate that PWA and AMP doc versions match
-    test.use({ examplePage, checkVersion: true });
 
-    test.beforeEach(async ({ page }) => {
+    let page;
+
+    test.beforeAll(async ({ baseURL, browser }, testInfo) => {
+      Object.assign(testInfo, { testConfig, baseURL });
+      page = await start({ browser, testInfo });
+    });
+
+    test.afterAll(async () => {
+      await page.close();
+    });
+
+    test.beforeEach(async () => {
       test.slow();
+
+      const url = new URL(page.url());
+      // console.log("url.pathname:", url.pathname);
+      // console.log("url.search:", url.search);
+      // console.log("examplePage.path:", examplePage.path);
+      if (url.pathname + url.search != examplePage.path) {
+        await goBackToPlp(page);
+      }
     });
 
-    test("Flow: ATC", async ({ page }) => {
-      await page.locator("#plpListInner").scrollIntoViewIfNeeded();
-      await page
-        .locator("#plpListInner div[role='list']")
-        .waitFor({ timeout: 0 });
-      const selectedCard = await utils.getRandElement({
-        page,
-        // Selects from all .prodCard with a descendant that contains the regex match "Add to Cart"
-        selector:
-          '.prodCard:has(.plpAtc:text-matches("Add to Cart", "i"):visible)',
-      });
+    // test("Flow: ATC", async ({ page }) => {
+    //   await page.locator("#plpListInner").scrollIntoViewIfNeeded();
+    //   await page
+    //     .locator("#plpListInner div[role='list']")
+    //     .waitFor({ timeout: 0 });
+    //   const selectedCard = await utils.getRandElement({
+    //     page,
+    //     // Selects from all .prodCard with a descendant that contains the regex match "Add to Cart"
+    //     selector:
+    //       '.prodCard:has(.plpAtc:text-matches("Add to Cart", "i"):visible)',
+    //   });
 
-      test.skip(
-        selectedCard == "NONE_FOUND",
-        "No prodCards found with ATC btn."
-      );
+    //   test.skip(
+    //     selectedCard == "NONE_FOUND",
+    //     "No prodCards found with ATC btn."
+    //   );
 
-      const cartCount = page.locator("#cartCount");
-      const cartCountBefore = Number(await cartCount.textContent());
+    //   const cartCount = page.locator("#cartCount");
+    //   const cartCountBefore = Number(await cartCount.textContent());
 
-      await selectedCard
-        .locator('.plpAtc:text-matches("Add to Cart", "i"):visible')
-        .click();
-      await page.waitForLoadState("load", { timeout: 60 * 1000 });
+    //   await selectedCard
+    //     .locator('.plpAtc:text-matches("Add to Cart", "i"):visible')
+    //     .click();
+    //   await page.waitForLoadState("load", { timeout: 60 * 1000 });
 
-      const modalCartWrap = page.locator("#fulfillmentModal, #modalCartWrap");
-      const cartError =
-        /cartErrorModal/.test(await modalCartWrap.getAttribute("class")) ||
-        (await modalCartWrap.locator(".panelAlert:visible").count()) > 0;
-      await expect(modalCartWrap).toBeVisible();
-      await modalCartWrap.locator("button.modalClose:visible").click();
-      await expect(modalCartWrap).toBeHidden();
-      test.skip(
-        cartError,
-        "Error adding to cart, e.g., out of stock or API error."
-      );
-      const cartCountAfter = Number(await cartCount.textContent());
-      expect(cartCountAfter).toEqual(cartCountBefore + 1);
-    });
+    //   const modalCartWrap = page.locator("#fulfillmentModal, #modalCartWrap");
+    //   const cartError =
+    //     /cartErrorModal/.test(await modalCartWrap.getAttribute("class")) ||
+    //     (await modalCartWrap.locator(".panelAlert:visible").count()) > 0;
+    //   await expect(modalCartWrap).toBeVisible();
+    //   await modalCartWrap.locator("button.modalClose:visible").click();
+    //   await expect(modalCartWrap).toBeHidden();
+    //   test.skip(
+    //     cartError,
+    //     "Error adding to cart, e.g., out of stock or API error."
+    //   );
+    //   const cartCountAfter = Number(await cartCount.textContent());
+    //   expect(cartCountAfter).toEqual(cartCountBefore + 1);
+    // });
 
-    test("Flow: Choose Options", async ({ page }) => {
-      await page.locator("#plpListInner").scrollIntoViewIfNeeded();
-      await page
-        .locator("#plpListInner div[role='list']")
-        .waitFor({ timeout: 0 });
-      const selectedCard = await utils.getRandElement({
-        page,
-        // Selects from all .prodCard with a descendant that contains the regex match "Add to Cart"
-        selector: '.prodCard:has(.plpAtc:text-matches("Choose Options", "i"))',
-      });
-      test.skip(
-        selectedCard == "NONE_FOUND",
-        "No prodCards found with Choose Options btn."
-      );
-      await selectedCard
-        .locator(".plpAtc:text-matches('Choose Options', 'i')")
-        .click();
-      await utils.waitAfterPdpSoftNav(page);
-      await expect(page.locator("#wmHostPdp body.amp-shadow")).toBeVisible();
-      await expect(page.locator("#wmHostPrimary body.amp-shadow")).toBeHidden();
-    });
-
-    test("Flow: PLP->PDP", async ({ page }) => {
-      const selectedCard = await utils.getRandElement({
-        page,
-        selector: ".prodCard",
-      });
-      test.skip(selectedCard == "NONE_FOUND", "No prodCards found.");
-      const cardTitleLocator = selectedCard.locator("a.plpProdTitle");
-
-      page.waitForNavigation();
-      await cardTitleLocator.click();
-
-      await utils.waitAfterPdpSoftNav(page);
-
-      await expect(page.locator("#wmHostPdp body.amp-shadow")).toBeVisible();
-      await expect(page.locator("#wmHostPrimary body.amp-shadow")).toBeHidden();
-    });
-
-    test("Pagination", async ({ page }) => {
+    // test("Click around PLP #smoke", async ({ page }) => {
+    test("Pagination #smoke", async () => {
       const firstProdCard = page.locator(".prodCard").first();
       let comparisonCardId = await firstProdCard.getAttribute("id");
       let selectedCardId;
@@ -127,7 +112,50 @@ for (let examplePage of pages) {
       }
     });
 
-    test("Toggle Pickup and SDD filters", async ({ page }) => {
+    test("Flow: Choose Options #smoke", async () => {
+      await page.locator("#plpListInner").scrollIntoViewIfNeeded();
+      await page
+        .locator("#plpListInner div[role='list']")
+        .waitFor({ timeout: 0 });
+      const selectedCard = await utils.getRandElement({
+        page,
+        // Selects from all .prodCard with a descendant that contains the regex match "Add to Cart"
+        selector: '.prodCard:has(.plpAtc:text-matches("Choose Options", "i"))',
+      });
+      test.skip(
+        selectedCard == "NONE_FOUND",
+        "No prodCards found with Choose Options btn."
+      );
+      await selectedCard
+        .locator(".plpAtc:text-matches('Choose Options', 'i')")
+        .click();
+      await utils.waitAfterPdpSoftNav(page);
+      await expect(page.locator("#wmHostPdp body.amp-shadow")).toBeVisible();
+      await expect(page.locator("#wmHostPrimary body.amp-shadow")).toBeHidden();
+
+      // await goBackToPlp(page);
+    });
+
+    test("Flow: PLP->PDP #smoke", async () => {
+      const selectedCard = await utils.getRandElement({
+        page,
+        selector: ".prodCard",
+      });
+      test.skip(selectedCard == "NONE_FOUND", "No prodCards found.");
+      const cardTitleLocator = selectedCard.locator("a.plpProdTitle");
+
+      page.waitForNavigation();
+      await cardTitleLocator.click();
+
+      await utils.waitAfterPdpSoftNav(page);
+
+      await expect(page.locator("#wmHostPdp body.amp-shadow")).toBeVisible();
+      await expect(page.locator("#wmHostPrimary body.amp-shadow")).toBeHidden();
+
+      // await goBackToPlp(page);
+    });
+
+    test("Toggle Pickup and SDD filters", async () => {
       test.skip(/harmon/.test(page.url()), "SDD and BOPIS disabled on Harmon");
 
       const [isBopisPillVisible, isSddPillVisible] = await arePillsVisible(
@@ -146,7 +174,7 @@ for (let examplePage of pages) {
       await clickSdd(page);
     });
 
-    test("Apply various filters", async ({ page }) => {
+    test("Apply various filters #smoke", async () => {
       // test.fixme();
       // test.setTimeout(45 * 1000);
       let bopisClicked;
@@ -170,41 +198,40 @@ for (let examplePage of pages) {
       const hScrollList = page.locator(".hScrollList:visible");
 
       const usedFacets = [];
-      await test.step("Apply facets", async () => {
-        for (let i = 0; i < 3; i++) {
-          // Get one of the closed accordians and open it
-          await clickRandAccordian();
-          // const randAccordian = await getRandAccordian();
-          // if (typeof randAccordian == String) {
-          //   console.log("randAccordian not found");
-          // }
-          // if (await randAccordian.isHidden()) {
-          // }
-          // await randAccordian.click();
-          // Get a visible facet and click the checkbox
-          await clickRandFacet();
-        }
-      });
+      // await test.step("Apply facets", async () => {
+      for (let i = 0; i < 3; i++) {
+        // Get one of the closed accordians and open it
+        await clickRandAccordian();
+        // const randAccordian = await getRandAccordian();
+        // if (typeof randAccordian == String) {
+        //   console.log("randAccordian not found");
+        // }
+        // if (await randAccordian.isHidden()) {
+        // }
+        // await randAccordian.click();
+        // Get a visible facet and click the checkbox
+        await clickRandFacet();
+      }
+      // });
 
-      await test.step("Remove facets", async () => {
-        if (!/DSK/.test(test.info().project.name)) {
-          await page.locator(".filterModal.active button.modalClose").click();
-        }
-        const appliedFacets = hScrollList.locator("button:visible");
-        for (let i = 0; i < (await appliedFacets.count()); i++) {
-          await hScrollList.waitFor();
-          const randFacet = await utils.getRandElement({
-            page,
-            selector: ".hScrollList:visible button:visible",
-            scroll: false,
-          });
-          const facetName = await randFacet.textContent();
-          await randFacet.click();
-          await hScrollList.waitFor();
-          expect((await hScrollList.textContent()).includes(facetName))
-            .toBeFalsy;
-        }
-      });
+      // await test.step("Remove facets", async () => {
+      if (!/DSK/.test(test.info().project.name)) {
+        await page.locator(".filterModal.active button.modalClose").click();
+      }
+      const appliedFacets = hScrollList.locator("button:visible");
+      for (let i = 0; i < (await appliedFacets.count()); i++) {
+        await hScrollList.waitFor();
+        const randFacet = await utils.getRandElement({
+          page,
+          selector: ".hScrollList:visible button:visible",
+          scroll: false,
+        });
+        const facetName = await randFacet.textContent();
+        await randFacet.click();
+        await hScrollList.waitFor();
+        expect((await hScrollList.textContent()).includes(facetName)).toBeFalsy;
+      }
+      // });
 
       async function getRandAccordian() {
         return (
@@ -295,11 +322,12 @@ for (let examplePage of pages) {
         }
       }
     });
+    // });
   });
 }
 
 async function clickBopis(page) {
-  if (await page.locator("input#prodBopisCbPwa").isChecked()) return;
+  if (await page.locator("input#prodBopisCbPwa:visible").isChecked()) return;
   const bopisCb = page.locator('.plpBopisSddBtns label[for="prodBopisCbPwa"]');
 
   await bopisCb.click();
@@ -308,7 +336,7 @@ async function clickBopis(page) {
     page.waitForSelector("[data-test=bopisPill]:visible", {
       timeout: 10 * 10000,
     }),
-    page.waitForTimeout(5000),
+    page.waitForTimeout(1000),
   ]);
   const [isBopisPillVisible, isSddPillVisible] = await arePillsVisible(page);
 
@@ -316,7 +344,7 @@ async function clickBopis(page) {
   expect(isSddPillVisible).toBeFalsy();
 }
 async function clickSdd(page) {
-  if (await page.locator("input#prodSdd").isChecked()) return;
+  if (await page.locator("input#prodSdd:visible").isChecked()) return;
   const sddCb = page.locator('.plpBopisSddBtns label[for="prodSdd"]');
 
   await sddCb.click();
@@ -325,7 +353,7 @@ async function clickSdd(page) {
     page.waitForSelector("[data-test=SddPill]:visible", {
       timeout: 10 * 10000,
     }),
-    page.waitForTimeout(5000),
+    page.waitForTimeout(1000),
   ]);
   const [isBopisPillVisible, isSddPillVisible] = await arePillsVisible(page);
 
@@ -342,4 +370,10 @@ async function arePillsVisible(page) {
     page.locator("#plpPills button.plpBopisPill").isVisible(),
     page.locator("#plpPills button.plpSddPill").isVisible(),
   ]);
+}
+
+async function goBackToPlp(page) {
+  console.log("GOING BACK!");
+  await page.goBack();
+  await expect(page.locator("#wmHostPrimary body.amp-shadow")).toBeVisible();
 }

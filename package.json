@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npx playwright test",
     "test:prod": "npm test -- --config=configs/prod.config.js",
-    "test:em02": "npm test",
+    "test:em02": "npx playwright test",
     "test:et01": "npm test -- --config=configs/et01.config.js",
     "test:dev01": "npm test -- --config=configs/dev01.config.js",
     "prestart": "cd ~/bbb-test-e2e/test-runner && git pull",
@@ -20,10 +20,12 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.19.0"
+    "@playwright/test": "^1.21.0"
   },
   "dependencies": {
+    "csv": "^6.0.5",
     "dotenv": "^16.0.0",
-    "imapflow": "^1.0.85"
+    "imapflow": "^1.0.85",
+    "playwright": "^1.21.1"
   }
 }

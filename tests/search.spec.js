@@ -1,21 +1,41 @@
-const { test, expect, utils } = require("../utils");
+const { test, expect, start, utils } = require("../utils");
 const pages = utils.prepPaths(require("../testPages/home.json"));
 
 for (let examplePage of pages) {
-  examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
+  const testConfig = {
+    checkVersion: false, // Fail test if Appshell & AMP doc versions mismatch?
+    login: false, // Perform login flow prior to running tests?
+    watchConsole: false, // Boolean or regex
+    examplePage,
+    params: "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true",
+  };
 
   test.describe(examplePage.name, () => {
     test.describe.configure({ mode: "parallel" });
-    // checkVersion flag - Validate that PWA and AMP doc versions match
-    test.use({ examplePage, checkVersion: false });
 
-    // test.beforeEach(async ({ page }) => {});
+    let page;
 
-    test("Search Color", async ({ page }) => {
+    test.beforeAll(async ({ baseURL, browser }, testInfo) => {
+      Object.assign(testInfo, { testConfig, baseURL });
+      page = await start({ browser, testInfo });
+    });
+
+    test.afterAll(async () => {
+      await page.close();
+    });
+
+    test.beforeEach(async () => {
+      const url = new URL(page.url());
+      if (url.pathname + url.search != examplePage.path) {
+        await page.goto(examplePage.path);
+      }
+    });
+
+    test("Search Color #smoke", async () => {
       await utils.search(page, "blue");
 
       // Locate elements, this locator points to a list.
-      await page.pause();
+      // await page.pause();
       await page.locator("#plpListInner .prodCard").first().waitFor();
       const prodCards = page.locator("#plpListInner .prodCard");
       const cardCount = await prodCards.count();
@@ -45,6 +65,16 @@ for (let examplePage of pages) {
 
       // const re = new RegExp(colorInCard, "i");
       // expect(defaultFacet).toMatch(re);
+    });
+
+    test("Search with quote #smoke", async () => {
+      await utils.search(page, `12"`);
+
+      await page.locator("#plpListInner .prodCard").first().waitFor();
+      const prodCards = page.locator("#plpListInner .prodCard");
+      const cardCount = await prodCards.count();
+
+      expect(cardCount).toBeGreaterThan(0);
     });
   });
 }
