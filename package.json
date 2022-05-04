@@ -1,6 +1,6 @@
 {
   "name": "test-playwright",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,13 +14,15 @@
     "poststart": "cd ~/bbb-test-e2e/test-results/ && git add test-report && git commit -m \"$(date '+%Y-%m-%d %H:%M:%S')\" && git push",
     "debug": "PWDEBUG=1 npx playwright test",
     "report": "npx playwright show-report ../../test-results/test-report",
-    "create": "node setup/create-test-file.js"
+    "create": "node setup/create-test-file.js",
+    "release": "standard-version"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.21.0"
+    "@playwright/test": "^1.21.0",
+    "standard-version": "^9.3.2"
   },
   "dependencies": {
     "csv": "^6.0.5",
