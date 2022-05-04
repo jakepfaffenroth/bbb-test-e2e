@@ -24,14 +24,27 @@ const pages = utils.prepPaths(require("../testPages/XXXX.json"));
   This test spec will open a new page for every test.
 */
 for (let examplePage of pages) {
-  examplePage.path += "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true";
+  const testConfig = {
+    checkVersion: false,  // Fail test if Appshell & AMP doc versions mismatch?
+    login: false,  // Perform login flow prior to running tests?
+    watchConsole: false,  // Boolean or regex
+    examplePage,
+    params: "?wmPwa&web3feo&wmFast&no-cache&no-bucket=true",
+  };
+  examplePage.path += testConfig.params
 
   test.describe(examplePage.name, () => {
     test.describe.configure({ mode: "parallel" });
-    // checkVersion flag - Validate that PWA and AMP doc versions match
-    test.use({ examplePage, checkVersion: false, login: false });
 
-    // test.beforeEach(async ({ page }) => {});
+    test.use(testConfig);
+
+    test.beforeEach(async ({ page }) => {
+      // Include the tested page url in the report
+      test.info().annotations.push({
+        type: "Test page",
+        description: page.url(),
+      });
+    });
 
     test("New test", async ({ page }) => {});
   });
@@ -69,7 +82,13 @@ for (let examplePage of pages) {
       await page.close();
     });
 
-    // test.beforeEach(async () => {});
+    test.beforeEach(async () => {
+      // Include the tested page url in the report
+      test.info().annotations.push({
+        type: "Test page",
+        description: page.url(),
+      });
+    });
 
     test("New test", async () => {});
   });
