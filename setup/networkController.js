@@ -16,10 +16,20 @@ module.exports = async (page) => {
 };
 
 async function checkResponse(res) {
+  const ignoreTheseUrls = [
+    "ad.doubleclick",
+    "mpulse",
+    "narrativ",
+    "quantum",
+    "services/conversations",
+    "recommendations/also-bought",
+    "wompanalytics",
+    "manifest",
+  ].join("|");
+
   const acceptableBadResponses = [
-    /ad\.doubleclick|mpulse|narrativ|quantum|services\/conversations|recommendations\/also-bought/.test(res.url()),
-    /manifest/.test(res.url()),
-    res.status() == 301 || res.status() == 302,
+    new RegExp(ignoreTheseUrls).test(res.url()),
+    /301|302/.test(res.status())
   ];
 
   const failConditions = [
