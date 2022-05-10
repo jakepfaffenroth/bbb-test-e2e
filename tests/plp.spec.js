@@ -82,28 +82,33 @@ for (let examplePage of pages) {
       let comparisonCardId = await firstProdCard.getAttribute("id");
       let selectedCardId;
       let pageCur, pageNext, pagePrev;
+      const nextPageBtn = page.locator("data-test=plpPaginationNext");
+      const prevPageBtn = page.locator("button.plpPrev");
 
       await page.locator("#plpPagination").scrollIntoViewIfNeeded();
 
-      await ({ pageCur, pageNext } = await utils.pagination.next(page));
+      let count;
 
-      expect(pageNext).toEqual(pageCur + 1);
-      await compareFirstProdCardIds();
+      for (let i = 0; i < 2; i++) {
+        if (!/disabled/.test(await nextPageBtn.getAttribute("class"))) {
+          await ({ pageCur, pageNext } = await utils.pagination.next(page));
 
-      await ({ pageCur, pageNext } = await utils.pagination.next(page));
+          expect(pageNext).toEqual(pageCur + 1);
+          await compareFirstProdCardIds();
 
-      expect(pageNext).toEqual(pageCur + 1);
-      await compareFirstProdCardIds();
+          count++;
+        }
+      }
 
-      await ({ pageCur, pagePrev } = await utils.pagination.prev(page));
 
-      expect(pagePrev).toEqual(pageCur - 1);
-      await compareFirstProdCardIds();
+      for (let i = 0; i < count; i++) {
+        if (!/disabled/.test(await prevPageBtn.getAttribute("class"))) {
+          await ({ pageCur, pagePrev } = await utils.pagination.prev(page));
 
-      await ({ pageCur, pagePrev } = await utils.pagination.prev(page));
-
-      expect(pagePrev).toEqual(pageCur - 1);
-      await compareFirstProdCardIds();
+          expect(pagePrev).toEqual(pageCur - 1);
+          await compareFirstProdCardIds();
+        }
+      }
 
       async function compareFirstProdCardIds() {
         selectedCardId = await firstProdCard.getAttribute("id");
