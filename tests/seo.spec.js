@@ -1,5 +1,10 @@
 const { test, expect, start, utils } = require("../utils");
-const pages = utils.prepPaths(require("../testPages/general.json"));
+const pages = utils.prepPaths({
+  ...require("../testPages/home.json"),
+  ...require("../testPages/clp.json"),
+  ...require("../testPages/plp.json"),
+  ...require("../testPages/pdp.json"),
+});
 
 /*
   ~~ REUSE ~~
@@ -17,28 +22,38 @@ for (let examplePage of pages) {
   test.describe(examplePage.name, () => {
     test.describe.configure({ mode: "parallel" });
     let page;
+
     test.beforeAll(async ({ baseURL, browser }, testInfo) => {
       // test.slow();
 
       Object.assign(testInfo, { testConfig, baseURL });
-
       page = await start({ browser, testInfo });
     });
 
     test.afterAll(async () => {
       await page.close();
-      console.log(`${test.info().title} - ${test.info().duration / 1000}s`);
+      // console.log(`${test.info().title} - ${test.info().duration / 1000}s`);
     });
 
-    // test.beforeEach(async () => {});
+    test.beforeEach(async () => {
+      test.info().annotations.push({
+        type: "Test page",
+        description: page.url(),
+      });
+    });
 
     test("Validate title tag", async () => {
       const titleTag = page.locator("head title");
 
       const titleTagCount = await titleTag.count();
 
-      expect(titleTagCount, "Should have exactly one title tag").toEqual(1);
-      await expect(titleTag).toContainText(/.+ \| (bed bath|buybuy|harmon)/i);
+      expect
+        .soft(titleTagCount, "Should have exactly one title tag")
+        .toEqual(1);
+      await expect
+        .soft(titleTag)
+        .toContainText(/.+ \| (bed bath|buybuy|harmon)/i);
+      await expect(titleTag).not.toContainText(/undefined/i);
     });
     test("Validate meta description", async () => {
       // page.waitForTimeout(10 * 1000);
@@ -53,22 +68,38 @@ for (let examplePage of pages) {
       // const metaDescContent = await metaDesc.getAttribute("content");
       await expect.soft(metaDesc).not.toHaveAttribute("content", /undefined/);
       await expect.soft(metaDesc).toHaveAttribute("content", /.+/);
+      expect
+        .soft((await metaDesc.getAttribute("content")).split(" ").length)
+        .toBeGreaterThan(10);
     });
-    test("Validate meta keywords", async () => {
+    test("Validate meta keywords", async ({ request }) => {
       // page.waitForTimeout(10 * 1000);
 
       const metaKeywords = page.locator('head meta[name="keywords"]');
 
       const metaKeywordsCount = await metaKeywords.count();
 
-      expect
-        .soft(metaKeywordsCount, "Should have exactly one meta description")
-        .toEqual(1);
-      // const metaKeywordsContent = await metaKeywords.getAttribute("content");
-      await expect
-        .soft(metaKeywords)
-        .not.toHaveAttribute("content", /undefined/);
-      await expect.soft(metaKeywords).toHaveAttribute("content", /.+/);
+      const metaKeywordsContent = await metaKeywords.getAttribute("content");
+      if (!metaKeywordsCount || !metaKeywordsContent) {
+        const [id] = page.url().match(/(?<=\/)[0-9]+/) || [""];
+        const seoDataRes = await request.get(
+          `/apis/stateless/v1.0/content/seo-data?web3feo&cat_id=${id}`
+        );
+        const seoDataJson = await seoDataRes.json();
+        test.skip(
+          !seoDataJson?.data?.SEOData?.seo_keywords,
+          "No keywords returned by seo-data api"
+        );
+      } else {
+        expect
+          .soft(metaKeywordsCount, "Should have exactly one meta description")
+          .toEqual(1);
+        // const metaKeywordsContent = await metaKeywords.getAttribute("content");
+        await expect
+          .soft(metaKeywords)
+          .not.toHaveAttribute("content", /undefined/);
+        await expect.soft(metaKeywords).toHaveAttribute("content", /.+/);
+      }
     });
 
     test("Validate robots tag", async () => {
@@ -136,9 +167,16 @@ for (let examplePage of pages) {
             ""
           )
         : "NO AMPHTML TAG FOUND";
-      // console.log("origin, pathname:", origin, pathname);
-      // console.log("pwaAmphtmlHref:", pwaAmphtmlHref);
-      expect.soft(pwaAmphtmlHref).toBe(origin + "/amp" + pathname);
+
+      const robots = await page
+        .locator("head meta[name=robots]")
+        .getAttribute("content");
+
+      if (/no/i.test(robots)) {
+        expect.soft(amphtmlHrefCount).toBe(0);
+      } else {
+        expect.soft(pwaAmphtmlHref).toBe(origin + "/amp" + pathname);
+      }
     });
     test("Validate H1 heading", async () => {
       // :light prevents from looking in the shadow dom
@@ -226,10 +264,10 @@ for (let examplePage of pages) {
       ]);
 
       if (/bbbycaapp|beyond\.ca/.test(page.url())) {
-        // Harmon and CA
-        expect
-          .soft(cardCount, "Should not have twitter:card meta tag")
-          .toEqual(0);
+        // CA
+        // expect
+        //   .soft(cardCount, "Should not have twitter:card meta tag")
+        //   .toEqual(0);
         expect
           .soft(account_idCount, "Should not have twitter:account_id meta tag")
           .toEqual(0);
@@ -244,6 +282,9 @@ for (let examplePage of pages) {
             "Should have exactly one twitter:account_id meta tag"
           )
           .toEqual(1);
+        await expect
+          .soft(account_id, "Should have twitter:account_id meta content")
+          .toHaveAttribute("content", /(.+)/i);
       }
       expect
         .soft(titleCount, "Should have exactly one twitter:title meta tag")
@@ -266,9 +307,6 @@ for (let examplePage of pages) {
       await Promise.all([
         expect
           .soft(card, "Should have exactly one twitter:card meta tag")
-          .toHaveAttribute("content", /(.+)/i),
-        expect
-          .soft(account_id, "Should have twitter:account_id meta content")
           .toHaveAttribute("content", /(.+)/i),
         expect
           .soft(title, "Should have twitter:title meta content")
