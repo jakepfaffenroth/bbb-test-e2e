@@ -90,6 +90,7 @@ for (let examplePage of pages) {
     test("No duplicate IDs", async () => {
       const exclusions = ["symbol#heart"];
 
+      // TODO - ignore exclusions
       let dupes = await page.evaluate((exclusions) => {
         const body = window.wmPwa
           ? wmPwa.session.docObjActive.shadowBody
@@ -107,6 +108,33 @@ for (let examplePage of pages) {
           .map((elm) => {
             elm.innerHTML = "";
             return `<${elm.tagName.toLowerCase()} id='${elm.id}'>`;
+          });
+      }, exclusions);
+      dupes = dupes.length ? dupes.join("\n") : "none";
+      expect(dupes).toEqual("none");
+    });
+
+    test("No duplicate data-test attrs", async () => {
+      const exclusions = [];
+
+      // TODO - ignore exclusions?
+      let dupes = await page.evaluate((exclusions) => {
+        const body = window.wmPwa
+          ? wmPwa.session.docObjActive.shadowBody
+          : document.querySelector("body");
+
+        const elsWithDataTests = Array.from(
+          body.querySelectorAll("[data-test]")
+        );
+        return elsWithDataTests
+          .filter((el, i, arr) => {
+            const count = arr.filter((x) => x.dataset.test == el.dataset.test).length;
+            return count > 1 && /amp/i.test(el.tagName);
+          })
+          .sort((a, b) => (a.dataset.test < b.dataset.test ? -1 : a.dataset.test > b.dataset.test ? 1 : 0))
+          .map((elm) => {
+            elm.innerHTML = "";
+            return `<${elm.tagName.toLowerCase()} data-test='${elm.dataset.test}'>`;
           });
       }, exclusions);
       dupes = dupes.length ? dupes.join("\n") : "none";
